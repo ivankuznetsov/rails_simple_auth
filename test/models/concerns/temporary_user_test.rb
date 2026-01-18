@@ -116,14 +116,60 @@ class TemporaryUserTest < Minitest::Test
     assert_predicate user.errors[:base], :any?
   end
 
-  def test_convert_to_permanent_allows_email_from_another_temporary_user
+  def test_convert_to_permanent_works_when_other_temporary_users_exist
     User.create!(email: 'other_temp@example.com', password: 'password123', temporary: true)
     temp_user = User.create!(email: 'temp@example.com', password: 'password123', temporary: true)
 
-    # Should not raise - temporary users can share emails until conversion
     temp_user.convert_to_permanent!(email: 'unique@example.com', password: 'newpassword123')
 
     assert_not temp_user.temporary?
+  end
+
+  def test_convert_to_permanent_invalidates_all_sessions
+    user = User.create!(email: 'temp@example.com', password: 'password123', temporary: true)
+    user.sessions.create!(ip_address: '127.0.0.1', user_agent: 'Test')
+    user.sessions.create!(ip_address: '192.168.1.1', user_agent: 'Test2')
+
+    assert_equal 2, user.sessions.count
+
+    user.convert_to_permanent!(email: 'permanent@example.com', password: 'newpassword123')
+
+    assert_equal 0, user.sessions.reload.count
+  end
+
+  def test_cleanup_expired_temporary_destroys_old_temporary_users
+    RailsSimpleAuth.configuration.temporary_user_cleanup_days = 7
+
+    old_temp = User.create!(email: 'old@example.com', password: 'password123', temporary: true)
+    old_temp.update_column(:created_at, 10.days.ago) # rubocop:disable Rails/SkipsModelValidations
+
+    recent_temp = User.create!(email: 'recent@example.com', password: 'password123', temporary: true)
+    permanent = User.create!(email: 'perm@example.com', password: 'password123', temporary: false)
+
+    count = User.cleanup_expired_temporary!
+
+    assert_equal 1, count
+    assert_raises(ActiveRecord::RecordNotFound) { old_temp.reload }
+    # recent_temp and permanent should still exist
+    recent_temp.reload
+    permanent.reload
+  end
+
+  def test_cleanup_expired_temporary_accepts_custom_days
+    RailsSimpleAuth.configuration.temporary_user_cleanup_days = 7
+
+    old_temp = User.create!(email: 'old@example.com', password: 'password123', temporary: true)
+    old_temp.update_column(:created_at, 5.days.ago) # rubocop:disable Rails/SkipsModelValidations
+
+    # With default 7 days, this user is not expired
+    assert_equal 0, User.cleanup_expired_temporary!
+    old_temp.reload # Should still exist
+
+    # With custom 3 days, this user is expired
+    count = User.cleanup_expired_temporary!(days: 3)
+
+    assert_equal 1, count
+    assert_raises(ActiveRecord::RecordNotFound) { old_temp.reload }
   end
 end
 

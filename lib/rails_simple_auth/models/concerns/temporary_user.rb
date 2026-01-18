@@ -58,12 +58,29 @@ module RailsSimpleAuth
           # Check if transaction was rolled back
           return false if errors.any? || temporary?
 
-          Rails.logger.info("[RailsSimpleAuth] Converted temporary user #{id} to permanent")
+          invalidate_all_sessions!
           send_conversion_confirmation_email
+          Rails.logger.info("[RailsSimpleAuth] Converted temporary user #{id} to permanent")
           self
         rescue ActiveRecord::RecordNotUnique
           errors.add(:email, 'has already been taken')
           false
+        end
+
+        class_methods do
+          # Cleanup expired temporary users in batches
+          # @param days [Integer, nil] Override for cleanup_days config
+          # @param batch_size [Integer] Number of users to process per batch
+          # @return [Integer] Number of users destroyed
+          def cleanup_expired_temporary!(days: nil, batch_size: 100)
+            count = 0
+            temporary_expired(days).find_each(batch_size: batch_size) do |user|
+              user.destroy
+              count += 1
+            end
+            Rails.logger.info("[RailsSimpleAuth] Cleaned up #{count} expired temporary users")
+            count
+          end
         end
 
         private
@@ -76,8 +93,11 @@ module RailsSimpleAuth
           RailsSimpleAuth.configuration.mailer.confirmation(self, token).deliver_later
 
           Rails.logger.info("[RailsSimpleAuth] Queued confirmation email for converted user #{id}")
-        rescue StandardError => e
-          Rails.logger.error("[RailsSimpleAuth] Failed to send confirmation email for user #{id}: #{e.message}")
+        rescue ArgumentError, NoMethodError, RailsSimpleAuth::ConfigurationError => e
+          # Configuration or method errors - log but don't fail conversion
+          Rails.logger.error(
+            "[RailsSimpleAuth] Failed to send confirmation email for user #{id}: #{e.class}: #{e.message}"
+          )
         end
       end
     end
