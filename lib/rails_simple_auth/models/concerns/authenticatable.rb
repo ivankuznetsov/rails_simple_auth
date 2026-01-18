@@ -10,7 +10,7 @@ module RailsSimpleAuth
           has_secure_password
 
           has_many :sessions,
-                   class_name: 'RailsSimpleAuth::Session',
+                   class_name: RailsSimpleAuth.configuration.session_class_name,
                    dependent: :destroy,
                    inverse_of: :user
 

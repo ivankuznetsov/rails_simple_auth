@@ -64,11 +64,6 @@ class User < ApplicationRecord
   include RailsSimpleAuth::Models::Concerns::Confirmable
   include RailsSimpleAuth::Models::Concerns::MagicLinkable
   include RailsSimpleAuth::Models::Concerns::TemporaryUser
-
-  # Re-define sessions association with static class name for testing
-  has_many :sessions,
-           class_name: 'RailsSimpleAuth::Session',
-           dependent: :destroy
 end
 
 # Monkey-patch Session for testing to use static class name
