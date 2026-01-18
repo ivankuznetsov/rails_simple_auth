@@ -1,0 +1,59 @@
+<main class="rsa-container">
+  <div class="rsa-auth-form">
+    <h1 class="rsa-auth-form__title">Sign In</h1>
+
+    <%= form_with url: main_app.session_path, class: "rsa-auth-form__form" do |form| %>
+      <div class="rsa-auth-form__group">
+        <%= form.label :email_address, "Email", class: "rsa-auth-form__label" %>
+        <%= form.email_field :email_address,
+              class: "rsa-auth-form__input #{@error_message.present? ? 'rsa-auth-form__input--error' : ''}",
+              required: true,
+              autofocus: true,
+              value: @previous_email %>
+        <% if @error_message.present? %>
+          <p class="rsa-auth-form__error"><%= @error_message %></p>
+        <% end %>
+      </div>
+
+      <div class="rsa-auth-form__group">
+        <%= form.label :password, class: "rsa-auth-form__label" %>
+        <%= form.password_field :password,
+              class: "rsa-auth-form__input #{@error_message.present? ? 'rsa-auth-form__input--error' : ''}",
+              required: true %>
+      </div>
+
+      <div class="rsa-auth-form__actions">
+        <%= form.submit "Sign In", class: "rsa-auth-form__submit" %>
+      </div>
+    <% end %>
+
+    <% if RailsSimpleAuth.configuration.magic_link_enabled %>
+      <div class="rsa-auth-form__separator">or</div>
+
+      <%= link_to main_app.magic_link_form_path, class: "rsa-auth-form__magic-link-button" do %>
+        Sign in with Magic Link
+      <% end %>
+    <% end %>
+
+    <% if RailsSimpleAuth.configuration.oauth_enabled %>
+      <div class="rsa-auth-form__oauth">
+        <div class="rsa-auth-form__oauth-buttons">
+          <% RailsSimpleAuth.configuration.oauth_providers.each do |provider| %>
+            <%= link_to "/auth/#{provider}",
+                  class: "rsa-auth-form__oauth-button rsa-auth-form__oauth-button--#{provider}",
+                  method: :post,
+                  data: { turbo: false } do %>
+              <span class="rsa-auth-form__oauth-icon rsa-auth-form__oauth-icon--<%= provider %>"></span>
+              Continue with <%= provider.to_s.titleize %>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <div class="rsa-auth-form__links">
+      <%= link_to "Forgot password?", main_app.new_password_path, class: "rsa-auth-form__link" %>
+      <%= link_to "Sign Up", main_app.sign_up_path, class: "rsa-auth-form__link rsa-auth-form__link--right" %>
+    </div>
+  </div>
+</main>

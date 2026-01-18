@@ -1,0 +1,27 @@
+<main class="rsa-container">
+  <div class="rsa-auth-form">
+    <h1 class="rsa-auth-form__title">Resend Confirmation</h1>
+
+    <p class="rsa-auth-form__description">
+      Enter your email and we'll send you a new confirmation link.
+    </p>
+
+    <%= form_with url: main_app.confirmations_path, class: "rsa-auth-form__form" do |form| %>
+      <div class="rsa-auth-form__group">
+        <%= form.label :email_address, "Email", class: "rsa-auth-form__label" %>
+        <%= form.email_field :email_address,
+              class: "rsa-auth-form__input",
+              required: true,
+              autofocus: true %>
+      </div>
+
+      <div class="rsa-auth-form__actions">
+        <%= form.submit "Resend Confirmation", class: "rsa-auth-form__submit" %>
+      </div>
+    <% end %>
+
+    <div class="rsa-auth-form__links">
+      <%= link_to "Back to Sign In", main_app.new_session_path, class: "rsa-auth-form__link" %>
+    </div>
+  </div>
+</main>

@@ -1,0 +1,33 @@
+<main class="rsa-container">
+  <div class="rsa-auth-form">
+    <h1 class="rsa-auth-form__title">Set New Password</h1>
+
+    <%= form_with model: @user, url: main_app.password_path(token: params[:token]), method: :patch, class: "rsa-auth-form__form" do |form| %>
+      <div class="rsa-auth-form__group">
+        <%= form.label :password, "New Password", class: "rsa-auth-form__label" %>
+        <%= form.password_field :password,
+              class: "rsa-auth-form__input #{@user.errors[:password].any? ? 'rsa-auth-form__input--error' : ''}",
+              required: true,
+              autofocus: true %>
+        <p class="rsa-auth-form__hint">Minimum <%= RailsSimpleAuth.configuration.password_minimum_length %> characters</p>
+        <% if @user.errors[:password].any? %>
+          <p class="rsa-auth-form__error"><%= @user.errors[:password].first %></p>
+        <% end %>
+      </div>
+
+      <div class="rsa-auth-form__group">
+        <%= form.label :password_confirmation, "Confirm Password", class: "rsa-auth-form__label" %>
+        <%= form.password_field :password_confirmation,
+              class: "rsa-auth-form__input #{@user.errors[:password_confirmation].any? ? 'rsa-auth-form__input--error' : ''}",
+              required: true %>
+        <% if @user.errors[:password_confirmation].any? %>
+          <p class="rsa-auth-form__error"><%= @user.errors[:password_confirmation].first %></p>
+        <% end %>
+      </div>
+
+      <div class="rsa-auth-form__actions">
+        <%= form.submit "Update Password", class: "rsa-auth-form__submit" %>
+      </div>
+    <% end %>
+  </div>
+</main>

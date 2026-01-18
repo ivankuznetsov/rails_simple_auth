@@ -1,0 +1,55 @@
+<main class="rsa-container">
+  <div class="rsa-auth-form">
+    <h1 class="rsa-auth-form__title">Sign Up</h1>
+
+    <%= form_with model: @user, url: main_app.sign_up_path, class: "rsa-auth-form__form" do |form| %>
+      <div class="rsa-auth-form__group">
+        <%= form.label :email_address, "Email", class: "rsa-auth-form__label" %>
+        <%= form.email_field :email_address,
+              class: "rsa-auth-form__input #{@user.errors[:email_address].any? ? 'rsa-auth-form__input--error' : ''}",
+              required: true,
+              autofocus: true %>
+        <% if @user.errors[:email_address].any? %>
+          <p class="rsa-auth-form__error"><%= @user.errors[:email_address].first %></p>
+        <% end %>
+      </div>
+
+      <div class="rsa-auth-form__group">
+        <%= form.label :password, class: "rsa-auth-form__label" %>
+        <%= form.password_field :password,
+              class: "rsa-auth-form__input #{@user.errors[:password].any? ? 'rsa-auth-form__input--error' : ''}",
+              required: true %>
+        <p class="rsa-auth-form__hint">Minimum <%= RailsSimpleAuth.configuration.password_minimum_length %> characters</p>
+        <% if @user.errors[:password].any? %>
+          <p class="rsa-auth-form__error"><%= @user.errors[:password].first %></p>
+        <% end %>
+      </div>
+
+      <div class="rsa-auth-form__actions">
+        <%= form.submit "Sign Up", class: "rsa-auth-form__submit" %>
+      </div>
+    <% end %>
+
+    <% if RailsSimpleAuth.configuration.oauth_enabled %>
+      <div class="rsa-auth-form__separator">or</div>
+
+      <div class="rsa-auth-form__oauth">
+        <div class="rsa-auth-form__oauth-buttons">
+          <% RailsSimpleAuth.configuration.oauth_providers.each do |provider| %>
+            <%= link_to "/auth/#{provider}",
+                  class: "rsa-auth-form__oauth-button rsa-auth-form__oauth-button--#{provider}",
+                  method: :post,
+                  data: { turbo: false } do %>
+              <span class="rsa-auth-form__oauth-icon rsa-auth-form__oauth-icon--<%= provider %>"></span>
+              Continue with <%= provider.to_s.titleize %>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <div class="rsa-auth-form__links">
+      <%= link_to "Already have an account? Sign In", main_app.new_session_path, class: "rsa-auth-form__link" %>
+    </div>
+  </div>
+</main>

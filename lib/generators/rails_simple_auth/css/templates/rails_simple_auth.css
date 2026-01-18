@@ -1,0 +1,344 @@
+/*
+ * RailsSimpleAuth - Base Styles
+ *
+ * This CSS uses CSS custom properties (variables) for easy theming.
+ * Override these variables in your own stylesheet to customize colors.
+ *
+ * Example:
+ *   :root {
+ *     --rsa-color-primary: #22c55e;
+ *     --rsa-color-background-form: #ffffff;
+ *   }
+ */
+
+/* ============================================================================
+   CSS Variables (Override these to customize)
+   ============================================================================ */
+
+:root {
+  /* Primary Colors */
+  --rsa-color-primary: #3b82f6;
+  --rsa-color-primary-hover: #2563eb;
+
+  /* Background Colors */
+  --rsa-color-background: #ffffff;
+  --rsa-color-background-form: #ffffff;
+  --rsa-color-surface: #f9fafb;
+  --rsa-color-surface-hover: #f3f4f6;
+
+  /* Text Colors */
+  --rsa-color-text: #374151;
+  --rsa-color-text-muted: #6b7280;
+  --rsa-color-text-dark: #1f2937;
+
+  /* Border Colors */
+  --rsa-color-border: #e5e7eb;
+  --rsa-color-border-form: #d1d5db;
+
+  /* Semantic Colors */
+  --rsa-color-danger: #dc2626;
+  --rsa-color-success: #16a34a;
+  --rsa-color-white: #ffffff;
+
+  /* Focus Ring */
+  --rsa-color-focus-ring: rgba(59, 130, 246, 0.5);
+
+  /* OAuth Provider Colors */
+  --rsa-color-google: #4285f4;
+  --rsa-color-google-bg: #f0f7ff;
+  --rsa-color-github: #24292e;
+  --rsa-color-github-bg: #f6f8fa;
+
+  /* Spacing */
+  --rsa-space-1: 0.25rem;
+  --rsa-space-2: 0.5rem;
+  --rsa-space-3: 0.75rem;
+  --rsa-space-4: 1rem;
+  --rsa-space-5: 1.25rem;
+  --rsa-space-6: 1.5rem;
+  --rsa-space-8: 2rem;
+
+  /* Border Radius */
+  --rsa-radius-sm: 0.25rem;
+  --rsa-radius-md: 0.375rem;
+  --rsa-radius-lg: 0.5rem;
+  --rsa-radius-xl: 0.75rem;
+
+  /* Border Width */
+  --rsa-border-thin: 1px;
+}
+
+/* ============================================================================
+   Container
+   ============================================================================ */
+
+.rsa-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+  padding: var(--rsa-space-4);
+}
+
+/* ============================================================================
+   Auth Form
+   ============================================================================ */
+
+.rsa-auth-form {
+  padding: var(--rsa-space-8);
+  border-radius: var(--rsa-radius-xl);
+  border: var(--rsa-border-thin) solid var(--rsa-color-border);
+  width: 100%;
+  max-width: 400px;
+  background-color: var(--rsa-color-background-form);
+}
+
+.rsa-auth-form__title {
+  margin-bottom: var(--rsa-space-2);
+  font-size: 1.5rem;
+  font-weight: 600;
+  text-align: center;
+  color: var(--rsa-color-text-dark);
+}
+
+.rsa-auth-form__description {
+  margin-bottom: var(--rsa-space-6);
+  font-size: 0.875rem;
+  text-align: center;
+  color: var(--rsa-color-text-muted);
+}
+
+.rsa-auth-form__form {
+  width: 100%;
+}
+
+/* ============================================================================
+   Form Groups
+   ============================================================================ */
+
+.rsa-auth-form__group {
+  margin-bottom: var(--rsa-space-4);
+}
+
+.rsa-auth-form__label {
+  display: block;
+  color: var(--rsa-color-text);
+  margin-bottom: var(--rsa-space-1);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.rsa-auth-form__input {
+  appearance: none;
+  border: var(--rsa-border-thin) solid var(--rsa-color-border-form);
+  border-radius: var(--rsa-radius-md);
+  width: 100%;
+  padding: var(--rsa-space-2) var(--rsa-space-3);
+  color: var(--rsa-color-text-dark);
+  background-color: var(--rsa-color-white);
+  font-size: 1rem;
+  line-height: 1.5;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.rsa-auth-form__input:focus {
+  outline: none;
+  border-color: var(--rsa-color-primary);
+  box-shadow: 0 0 0 3px var(--rsa-color-focus-ring);
+}
+
+.rsa-auth-form__input--error {
+  border-color: var(--rsa-color-danger);
+}
+
+.rsa-auth-form__input--error:focus {
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.25);
+}
+
+.rsa-auth-form__hint {
+  font-size: 0.75rem;
+  color: var(--rsa-color-text-muted);
+  margin-top: var(--rsa-space-1);
+}
+
+.rsa-auth-form__error {
+  color: var(--rsa-color-danger);
+  font-size: 0.875rem;
+  margin-top: var(--rsa-space-1);
+}
+
+/* ============================================================================
+   Actions
+   ============================================================================ */
+
+.rsa-auth-form__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: var(--rsa-space-6);
+}
+
+.rsa-auth-form__submit {
+  width: 100%;
+  font-weight: 600;
+  padding: var(--rsa-space-3) var(--rsa-space-4);
+  border: none;
+  border-radius: var(--rsa-radius-md);
+  background-color: var(--rsa-color-primary);
+  color: var(--rsa-color-white);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out;
+}
+
+.rsa-auth-form__submit:hover {
+  background-color: var(--rsa-color-primary-hover);
+}
+
+.rsa-auth-form__submit:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--rsa-color-focus-ring);
+}
+
+.rsa-auth-form__submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ============================================================================
+   Separator
+   ============================================================================ */
+
+.rsa-auth-form__separator {
+  display: flex;
+  align-items: center;
+  margin: var(--rsa-space-6) 0;
+  width: 100%;
+  color: var(--rsa-color-text-muted);
+  font-size: 0.875rem;
+}
+
+.rsa-auth-form__separator::before,
+.rsa-auth-form__separator::after {
+  content: "";
+  flex-grow: 1;
+  height: 1px;
+  background-color: var(--rsa-color-border);
+  margin: 0 var(--rsa-space-3);
+}
+
+/* ============================================================================
+   Magic Link Button
+   ============================================================================ */
+
+.rsa-auth-form__magic-link-button {
+  display: block;
+  width: 100%;
+  padding: var(--rsa-space-3) var(--rsa-space-4);
+  border: var(--rsa-border-thin) solid var(--rsa-color-primary);
+  border-radius: var(--rsa-radius-md);
+  background-color: transparent;
+  color: var(--rsa-color-primary);
+  text-decoration: none;
+  font-weight: 500;
+  text-align: center;
+  transition: all 0.15s ease-in-out;
+}
+
+.rsa-auth-form__magic-link-button:hover {
+  background-color: var(--rsa-color-primary);
+  color: var(--rsa-color-white);
+}
+
+/* ============================================================================
+   OAuth
+   ============================================================================ */
+
+.rsa-auth-form__oauth {
+  margin-top: var(--rsa-space-4);
+}
+
+.rsa-auth-form__oauth-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rsa-space-3);
+}
+
+.rsa-auth-form__oauth-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--rsa-space-3);
+  padding: var(--rsa-space-3) var(--rsa-space-4);
+  border: var(--rsa-border-thin) solid var(--rsa-color-border);
+  border-radius: var(--rsa-radius-md);
+  background-color: var(--rsa-color-white);
+  color: var(--rsa-color-text-dark);
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.15s ease-in-out;
+}
+
+.rsa-auth-form__oauth-button:hover {
+  background-color: var(--rsa-color-surface-hover);
+}
+
+.rsa-auth-form__oauth-button--google:hover {
+  border-color: var(--rsa-color-google);
+  background-color: var(--rsa-color-google-bg);
+}
+
+.rsa-auth-form__oauth-button--github:hover {
+  border-color: var(--rsa-color-github);
+  background-color: var(--rsa-color-github-bg);
+}
+
+.rsa-auth-form__oauth-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* ============================================================================
+   Links
+   ============================================================================ */
+
+.rsa-auth-form__links {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: var(--rsa-space-6);
+  flex-wrap: wrap;
+  gap: var(--rsa-space-2);
+}
+
+.rsa-auth-form__link {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--rsa-color-text-dark);
+  text-decoration: none;
+}
+
+.rsa-auth-form__link:hover {
+  text-decoration: underline;
+  color: var(--rsa-color-primary);
+}
+
+.rsa-auth-form__link--right {
+  margin-left: auto;
+}
+
+/* ============================================================================
+   Responsive
+   ============================================================================ */
+
+@media (max-width: 480px) {
+  .rsa-auth-form {
+    padding: var(--rsa-space-6);
+    border: none;
+    border-radius: 0;
+  }
+
+  .rsa-container {
+    padding: 0;
+  }
+}
