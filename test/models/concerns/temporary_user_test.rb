@@ -100,21 +100,20 @@ class TemporaryUserTest < Minitest::Test
     User.create!(email: 'taken@example.com', password: 'password123', temporary: false)
     temp_user = User.create!(email: 'temp@example.com', password: 'password123', temporary: true)
 
-    assert_raises(ActiveRecord::RecordInvalid) do
-      temp_user.convert_to_permanent!(email: 'taken@example.com', password: 'newpassword123')
-    end
+    result = temp_user.convert_to_permanent!(email: 'taken@example.com', password: 'newpassword123')
 
+    assert_not result
     assert_predicate temp_user.errors[:email], :any?
+    assert_predicate temp_user.reload, :temporary?
   end
 
   def test_convert_to_permanent_fails_when_already_permanent
     user = User.create!(email: 'perm@example.com', password: 'password123', temporary: false)
 
-    error = assert_raises(RailsSimpleAuth::Error) do
-      user.convert_to_permanent!(email: 'new@example.com', password: 'newpassword123')
-    end
+    result = user.convert_to_permanent!(email: 'new@example.com', password: 'newpassword123')
 
-    assert_match(/already permanent/, error.message)
+    assert_not result
+    assert_predicate user.errors[:base], :any?
   end
 
   def test_convert_to_permanent_allows_email_from_another_temporary_user

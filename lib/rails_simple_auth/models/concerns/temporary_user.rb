@@ -25,12 +25,24 @@ module RailsSimpleAuth
           !temporary?
         end
 
+        # Convert a temporary user to a permanent user with email and password
+        # Returns self on success, false on failure (with errors populated)
         def convert_to_permanent!(email:, password:)
+          # Validate email uniqueness upfront (better UX than failing inside transaction)
+          if self.class.where.not(id: id).exists?(email: email)
+            errors.add(:email, 'has already been taken')
+            return false
+          end
+
           transaction do
             # Reload to discard any unpersisted changes from callbacks before locking
             reload
             lock!
-            raise RailsSimpleAuth::Error, "User #{id} is already permanent" unless temporary?
+
+            unless temporary?
+              errors.add(:base, 'User is already permanent')
+              raise ActiveRecord::Rollback
+            end
 
             attrs = {
               email: email,
@@ -40,15 +52,18 @@ module RailsSimpleAuth
             # Reset confirmation so new email requires verification
             attrs[:confirmed_at] = nil if respond_to?(:confirmed_at)
 
-            update!(attrs)
+            raise ActiveRecord::Rollback unless update(attrs)
           end
+
+          # Check if transaction was rolled back
+          return false if errors.any? || temporary?
 
           Rails.logger.info("[RailsSimpleAuth] Converted temporary user #{id} to permanent")
           send_conversion_confirmation_email
           self
         rescue ActiveRecord::RecordNotUnique
           errors.add(:email, 'has already been taken')
-          raise ActiveRecord::RecordInvalid, self
+          false
         end
 
         private
