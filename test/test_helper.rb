@@ -26,6 +26,7 @@ ActiveRecord::Schema.define do
     t.datetime :confirmed_at
     t.string :oauth_provider
     t.string :oauth_uid
+    t.boolean :temporary, default: false, null: false
     t.timestamps
   end
 
@@ -62,6 +63,7 @@ class User < ApplicationRecord
   include RailsSimpleAuth::Models::Concerns::Authenticatable
   include RailsSimpleAuth::Models::Concerns::Confirmable
   include RailsSimpleAuth::Models::Concerns::MagicLinkable
+  include RailsSimpleAuth::Models::Concerns::TemporaryUser
 
   # Re-define sessions association with static class name for testing
   has_many :sessions,
@@ -96,6 +98,10 @@ module Minitest
 
     def assert_not(object, message = nil)
       refute(object, message)
+    end
+
+    def assert_not_includes(collection, object, message = nil)
+      refute_includes(collection, object, message)
     end
 
     def setup

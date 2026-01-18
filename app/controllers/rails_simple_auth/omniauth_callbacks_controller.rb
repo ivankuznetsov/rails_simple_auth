@@ -17,6 +17,7 @@ module RailsSimpleAuth
       user = user_class.from_oauth(auth_hash)
 
       if user&.persisted?
+        destroy_temporary_user_session
         create_session_for(user)
         run_after_sign_in_callback(user)
         redirect_to resolve_path(:after_sign_in_path),

@@ -11,7 +11,9 @@ module RailsSimpleAuth
                   :user_class_name, :session_class_name,
                   :password_minimum_length,
                   :after_sign_in_callback, :after_sign_out_callback, :after_sign_up_callback, :after_confirmation_callback,
-                  :temporary_users_enabled, :temporary_user_cleanup_days
+                  :temporary_users_enabled
+
+    attr_reader :temporary_user_cleanup_days
 
     def initialize
       @magic_link_enabled = true
@@ -96,6 +98,14 @@ module RailsSimpleAuth
 
     def rate_limit_for(action)
       rate_limits&.dig(action.to_sym)
+    end
+
+    def temporary_user_cleanup_days=(value)
+      unless value.is_a?(Integer) && value.positive?
+        raise ConfigurationError, 'temporary_user_cleanup_days must be a positive integer'
+      end
+
+      @temporary_user_cleanup_days = value
     end
   end
 end

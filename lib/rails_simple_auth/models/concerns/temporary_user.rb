@@ -11,6 +11,8 @@ module RailsSimpleAuth
           scope :permanent, -> { where(temporary: false) }
           scope :temporary_expired, lambda { |days = nil|
             cleanup_days = days || RailsSimpleAuth.configuration.temporary_user_cleanup_days
+            raise ConfigurationError, 'temporary_user_cleanup_days must be configured' unless cleanup_days&.positive?
+
             temporary.where(created_at: ...cleanup_days.days.ago)
           }
         end
@@ -26,22 +28,42 @@ module RailsSimpleAuth
         end
 
         def convert_to_permanent!(email:, password:)
+          raise RailsSimpleAuth::Error, "User #{id} is already permanent" unless temporary?
+
+          Rails.logger.info("[RailsSimpleAuth] Converting temporary user #{id} to permanent")
+
           transaction do
             lock!
-
-            if self.class.permanent.where.not(id: id).exists?(email_address: email)
-              errors.add(:email_address, 'has already been taken')
-              raise ActiveRecord::RecordInvalid, self
-            end
 
             update!(
               email_address: email,
               password: password,
               temporary: false
             )
-
-            send_confirmation_email! if respond_to?(:send_confirmation_email!)
           end
+
+          Rails.logger.info("[RailsSimpleAuth] Successfully converted user #{id} to permanent")
+
+          send_conversion_confirmation_email
+
+          self
+        rescue ActiveRecord::RecordNotUnique
+          errors.add(:email_address, 'has already been taken')
+          raise ActiveRecord::RecordInvalid, self
+        end
+
+        private
+
+        def send_conversion_confirmation_email
+          return unless RailsSimpleAuth.configuration.email_confirmation_enabled
+          return unless respond_to?(:generate_confirmation_token)
+
+          token = generate_confirmation_token
+          RailsSimpleAuth.configuration.mailer.confirmation(self, token).deliver_later
+
+          Rails.logger.info("[RailsSimpleAuth] Queued confirmation email for converted user #{id}")
+        rescue StandardError => e
+          Rails.logger.error("[RailsSimpleAuth] Failed to send confirmation email for user #{id}: #{e.message}")
         end
       end
     end

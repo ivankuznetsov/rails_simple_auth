@@ -9,6 +9,7 @@ Simple, secure authentication for Rails 8+ applications. Built on Rails primitiv
 - **Email confirmation** with signed tokens
 - **Password reset** with signed tokens
 - **OAuth support** (Google, GitHub, etc.)
+- **Temporary users** (guest mode) with conversion to permanent
 - **Rate limiting** built-in
 - **Session tracking** with IP and user agent
 - **Customizable styling** via CSS variables
@@ -201,6 +202,77 @@ class User < ApplicationRecord
     self.oauth_uid = auth_hash["uid"]
   end
 end
+```
+
+## Temporary Users (Guest Mode)
+
+Allow visitors to try your app without signing up, then convert to permanent accounts later.
+
+### Setup
+
+1. Generate the migration:
+
+```bash
+rails generate rails_simple_auth:temporary_users
+rails db:migrate
+```
+
+2. Include the concern in your User model:
+
+```ruby
+class User < ApplicationRecord
+  include RailsSimpleAuth::Models::Concerns::Authenticatable
+  include RailsSimpleAuth::Models::Concerns::TemporaryUser  # Add this
+end
+```
+
+3. Enable in configuration:
+
+```ruby
+RailsSimpleAuth.configure do |config|
+  config.temporary_users_enabled = true
+  config.temporary_user_cleanup_days = 7  # Auto-cleanup after 7 days
+end
+```
+
+### Creating Temporary Users
+
+```ruby
+# Create a temporary user (no email/password required)
+temp_user = User.create!(
+  email_address: "temp_#{SecureRandom.hex(8)}@temp.local",
+  password: SecureRandom.hex(16),
+  temporary: true
+)
+```
+
+### Converting to Permanent Account
+
+```ruby
+# When user decides to sign up for real
+temp_user.convert_to_permanent!(
+  email: "real@example.com",
+  password: "secure_password"
+)
+# Sends confirmation email automatically if email confirmation is enabled
+```
+
+### Scopes
+
+```ruby
+User.temporary          # All temporary users
+User.permanent          # All permanent users
+User.temporary_expired  # Temporary users older than cleanup_days
+User.temporary_expired(14)  # Custom days
+```
+
+### Cleanup Task
+
+Add to your scheduler (cron, Sidekiq, etc.):
+
+```ruby
+# Delete expired temporary users
+User.temporary_expired.destroy_all
 ```
 
 ## Controller Customization
