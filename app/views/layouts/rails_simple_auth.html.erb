@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= content_for(:title) || "Authentication" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= yield :head %>
+
+    <%= stylesheet_link_tag "rails_simple_auth/application", media: "all" %>
+  </head>
+
+  <body class="rsa-body">
+    <div class="rsa-container">
+      <div class="rsa-header">
+        <h1 class="rsa-header__title">
+          <%= link_to RailsSimpleAuth.configuration.app_name || "App", main_app.root_path %>
+        </h1>
+      </div>
+
+      <% flash.each do |type, message| %>
+        <div class="rsa-flash rsa-flash--<%= type %>">
+          <%= message %>
+        </div>
+      <% end %>
+
+      <main class="rsa-main">
+        <%= yield %>
+      </main>
+
+      <footer class="rsa-footer">
+        <span class="rsa-footer__copyright">&copy; <%= Date.current.year %></span>
+      </footer>
+    </div>
+  </body>
+</html>

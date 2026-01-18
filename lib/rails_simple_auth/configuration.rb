@@ -6,7 +6,7 @@ module RailsSimpleAuth
                   :magic_link_expiry, :password_reset_expiry, :confirmation_expiry, :session_expiry,
                   :rate_limits,
                   :after_sign_in_path, :after_sign_out_path, :after_sign_up_path, :after_confirmation_path,
-                  :layout,
+                  :layout, :app_name,
                   :mailer_sender, :mailer_class,
                   :user_class_name, :session_class_name,
                   :password_minimum_length,
@@ -37,7 +37,8 @@ module RailsSimpleAuth
       @after_sign_up_path = :root_path
       @after_confirmation_path = :new_session_path
 
-      @layout = "application"
+      @layout = "rails_simple_auth"
+      @app_name = nil
 
       @mailer_sender = "noreply@example.com"
       @mailer_class = "RailsSimpleAuth::AuthMailer"
