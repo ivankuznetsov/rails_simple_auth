@@ -9,8 +9,11 @@ module RailsSimpleAuth
       @token = token
       @confirmation_url = main_app.confirmation_url(token: token)
 
+      # Use confirmable_email for reconfirmation (email change) scenarios
+      recipient = user.respond_to?(:confirmable_email) ? user.confirmable_email : user.email
+
       mail(
-        to: user.email,
+        to: recipient,
         subject: 'Confirm your email'
       )
     end

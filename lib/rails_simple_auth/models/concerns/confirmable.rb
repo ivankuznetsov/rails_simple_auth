@@ -40,17 +40,19 @@ module RailsSimpleAuth
 
         # Confirm the user's email
         # Handles both initial confirmation and reconfirmation (email change)
+        # Also sets temporary: false if TemporaryUser concern is included
         def confirm!
+          attrs = { confirmed_at: Time.current }
+          attrs[:temporary] = false if respond_to?(:temporary?)
+
           if reconfirming?
             # Email change confirmation
-            update!(
-              email: unconfirmed_email,
-              unconfirmed_email: nil,
-              confirmed_at: Time.current
-            )
+            attrs[:email] = unconfirmed_email
+            attrs[:unconfirmed_email] = nil
+            update!(attrs)
           elsif unconfirmed?
             # Initial confirmation
-            update!(confirmed_at: Time.current)
+            update!(attrs)
           else
             # Already confirmed and not reconfirming
             true
