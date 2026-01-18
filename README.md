@@ -156,6 +156,7 @@ RailsSimpleAuth.configure do |config|
 
   # Mailer
   config.mailer_sender = "auth@myapp.com"
+  # config.mailer_class = "UserMailer"  # Use custom mailer (optional)
 
   # Password requirements
   config.password_minimum_length = 12
@@ -220,6 +221,75 @@ Update routes to use your controller:
 
 ```ruby
 rails_simple_auth_routes(sessions_controller: "sessions")
+```
+
+## Mailer
+
+The gem includes a built-in mailer (`RailsSimpleAuth::AuthMailer`) with email templates that work out of the box. No configuration required.
+
+### Included Email Templates
+
+| Email | Purpose |
+|-------|---------|
+| `confirmation` | Email confirmation when user signs up |
+| `magic_link` | Passwordless sign-in link |
+| `password_reset` | Password recovery link |
+
+### Configuration
+
+```ruby
+RailsSimpleAuth.configure do |config|
+  # Sender address for all auth emails (required)
+  config.mailer_sender = "auth@myapp.com"
+  # Or use environment variable
+  config.mailer_sender = ENV.fetch("MAILER_FROM", "noreply@example.com")
+end
+```
+
+### Custom Mailer (Optional)
+
+For branded emails with your own design, use a custom mailer:
+
+```ruby
+# config/initializers/rails_simple_auth.rb
+RailsSimpleAuth.configure do |config|
+  config.mailer_class = "UserMailer"
+  config.mailer_sender = "hello@myapp.com"
+end
+```
+
+Your custom mailer must implement these methods:
+
+```ruby
+# app/mailers/user_mailer.rb
+class UserMailer < ApplicationMailer
+  def confirmation(user, token)
+    @user = user
+    @confirmation_url = edit_confirmation_url(token: token)
+    mail(to: user.email_address, subject: "Confirm your email")
+  end
+
+  def magic_link(user, token)
+    @user = user
+    @magic_link_url = magic_link_login_url(token: token)
+    mail(to: user.email_address, subject: "Your sign-in link")
+  end
+
+  def password_reset(user, token)
+    @user = user
+    @reset_url = edit_password_url(token: token)
+    mail(to: user.email_address, subject: "Reset your password")
+  end
+end
+```
+
+Create corresponding views in `app/views/user_mailer/`:
+
+```
+app/views/user_mailer/
+├── confirmation.html.erb
+├── magic_link.html.erb
+└── password_reset.html.erb
 ```
 
 ## Helpers
