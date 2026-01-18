@@ -10,14 +10,15 @@ module RailsSimpleAuth
           has_secure_password
 
           has_many :sessions,
-                   class_name: "RailsSimpleAuth::Session",
+                   class_name: 'RailsSimpleAuth::Session',
                    dependent: :destroy,
                    inverse_of: :user
 
           validates :email_address,
                     presence: true,
                     uniqueness: { case_sensitive: false },
-                    format: { with: URI::MailTo::EMAIL_REGEXP }
+                    format: { with: URI::MailTo::EMAIL_REGEXP },
+                    unless: :temporary?
 
           validate :password_meets_minimum_length, if: :password_required?
 
@@ -47,9 +48,16 @@ module RailsSimpleAuth
           count
         end
 
+        # Returns false by default. Override in TemporaryUser concern.
+        def temporary?
+          false
+        end
+
         private
 
         def password_required?
+          return false if temporary?
+
           password_digest.blank? || password.present?
         end
 

@@ -7,31 +7,32 @@ module RailsSimpleAuth
 
     unless Rails.env.local?
       rate_limit to: 3, within: 1.hour, by: -> { client_ip }, only: :create,
-                 with: -> { redirect_to new_password_path, alert: "Too many password reset requests. Please try again later." }
+                 with: lambda {
+                   redirect_to new_password_path, alert: 'Too many password reset requests. Please try again later.'
+                 }
     end
 
-    def new
-    end
+    def new; end
+
+    def edit; end
 
     def create
-      user = user_class.find_by_email(params[:email_address])
+      user = user_class.find_by(email: params[:email_address])
 
       if user && can_reset_password?(user)
         token = user.generate_password_reset_token
         RailsSimpleAuth.configuration.mailer.password_reset(user, token).deliver_later
       end
 
-      redirect_to new_session_path, notice: "If an account exists with that email, password reset instructions have been sent."
-    end
-
-    def edit
+      redirect_to new_session_path,
+                  notice: 'If an account exists with that email, password reset instructions have been sent.'
     end
 
     def update
       ActiveRecord::Base.transaction do
         if @user.update(password_params)
           @user.invalidate_all_sessions!
-          redirect_to new_session_path, notice: "Password has been reset. Please sign in with your new password."
+          redirect_to new_session_path, notice: 'Password has been reset. Please sign in with your new password.'
         else
           render :edit, status: :unprocessable_content
           raise ActiveRecord::Rollback
@@ -42,14 +43,14 @@ module RailsSimpleAuth
         "[RailsSimpleAuth] Session invalidation failed after password reset for user #{@user.id}: #{e.message}"
       )
       # Password was rolled back due to transaction, redirect with error
-      redirect_to new_password_path, alert: "Password reset failed. Please try again."
+      redirect_to new_password_path, alert: 'Password reset failed. Please try again.'
     end
 
     private
 
     def set_user_from_token
       @user = user_class.find_signed(params[:token], purpose: :password_reset)
-      redirect_to new_password_path, alert: "Invalid or expired password reset link." unless @user
+      redirect_to new_password_path, alert: 'Invalid or expired password reset link.' unless @user
     end
 
     def can_reset_password?(user)
@@ -60,7 +61,7 @@ module RailsSimpleAuth
     end
 
     def password_params
-      params.require(:user).permit(:password, :password_confirmation)
+      params.expect(user: %i[password password_confirmation])
     end
   end
 end

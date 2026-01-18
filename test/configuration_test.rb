@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "test_helper"
+require 'test_helper'
 
 class ConfigurationTest < Minitest::Test
   def setup
@@ -8,11 +8,11 @@ class ConfigurationTest < Minitest::Test
   end
 
   def test_default_magic_link_enabled
-    assert_equal true, @config.magic_link_enabled
+    assert @config.magic_link_enabled
   end
 
   def test_default_email_confirmation_enabled
-    assert_equal true, @config.email_confirmation_enabled
+    assert @config.email_confirmation_enabled
   end
 
   def test_default_password_minimum_length
@@ -28,7 +28,7 @@ class ConfigurationTest < Minitest::Test
   end
 
   def test_default_user_class_name
-    assert_equal "User", @config.user_class_name
+    assert_equal 'User', @config.user_class_name
   end
 
   def test_configure_block
@@ -41,6 +41,7 @@ class ConfigurationTest < Minitest::Test
 
   def test_enable_oauth
     @config.enable_oauth(:google, :github)
+
     assert_includes @config.oauth_providers, :google
     assert_includes @config.oauth_providers, :github
   end

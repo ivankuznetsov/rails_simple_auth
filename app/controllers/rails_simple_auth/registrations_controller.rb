@@ -6,7 +6,7 @@ module RailsSimpleAuth
 
     unless Rails.env.local?
       rate_limit to: 5, within: 1.hour, by: -> { client_ip }, only: :create,
-                 with: -> { redirect_to sign_up_path, alert: "Too many sign up attempts. Please try again later." }
+                 with: -> { redirect_to sign_up_path, alert: 'Too many sign up attempts. Please try again later.' }
     end
 
     def new
@@ -27,18 +27,18 @@ module RailsSimpleAuth
     private
 
     def registration_params
-      params.require(:user).permit(:email_address, :password)
+      params.expect(user: %i[email_address password])
     end
 
     def after_successful_registration
       if RailsSimpleAuth.configuration.email_confirmation_enabled
         send_confirmation_email(@user)
         run_after_sign_up_callback(@user)
-        redirect_to new_session_path, notice: "Account created! Please check your email to confirm your account."
+        redirect_to new_session_path, notice: 'Account created! Please check your email to confirm your account.'
       else
         create_session_for(@user)
         run_after_sign_up_callback(@user)
-        redirect_to resolve_path(:after_sign_up_path), notice: "Account created successfully!"
+        redirect_to resolve_path(:after_sign_up_path), notice: 'Account created successfully!'
       end
     end
 

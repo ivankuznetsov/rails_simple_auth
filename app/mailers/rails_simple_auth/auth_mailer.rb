@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module RailsSimpleAuth
-  class AuthMailer < ActionMailer::Base
+  class AuthMailer < ApplicationMailer
     default from: -> { RailsSimpleAuth.configuration.mailer_sender }
 
     def confirmation(user, token)
@@ -11,7 +11,7 @@ module RailsSimpleAuth
 
       mail(
         to: user.email_address,
-        subject: "Confirm your email"
+        subject: 'Confirm your email'
       )
     end
 
@@ -22,7 +22,7 @@ module RailsSimpleAuth
 
       mail(
         to: user.email_address,
-        subject: "Sign in to your account"
+        subject: 'Sign in to your account'
       )
     end
 
@@ -33,7 +33,7 @@ module RailsSimpleAuth
 
       mail(
         to: user.email_address,
-        subject: "Reset your password"
+        subject: 'Reset your password'
       )
     end
 

@@ -17,7 +17,7 @@ module RailsSimpleAuth
       @email_confirmation_enabled = true
       @oauth_enabled = false
       @oauth_providers = []
-      @oauth_link_existing_accounts = true  # Allow OAuth to link to existing email accounts
+      @oauth_link_existing_accounts = true # Allow OAuth to link to existing email accounts
 
       @magic_link_expiry = 15.minutes
       @password_reset_expiry = 15.minutes
@@ -37,14 +37,14 @@ module RailsSimpleAuth
       @after_sign_up_path = :root_path
       @after_confirmation_path = :new_session_path
 
-      @layout = "rails_simple_auth"
+      @layout = 'rails_simple_auth'
       @app_name = nil
 
-      @mailer_sender = "noreply@example.com"
-      @mailer_class = "RailsSimpleAuth::AuthMailer"
+      @mailer_sender = 'noreply@example.com'
+      @mailer_class = 'RailsSimpleAuth::AuthMailer'
 
-      @user_class_name = "User"
-      @session_class_name = "RailsSimpleAuth::Session"
+      @user_class_name = 'User'
+      @session_class_name = 'RailsSimpleAuth::Session'
 
       @password_minimum_length = 8
 

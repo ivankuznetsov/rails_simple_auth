@@ -58,14 +58,14 @@ RailsSimpleAuth.configure do |config|
   # ============================================================================
 
   # Layout to use for auth pages (default: "application")
-  config.layout = "application"
+  config.layout = 'application'
 
   # ============================================================================
   # Mailer
   # ============================================================================
 
   # From address for auth emails
-  config.mailer_sender = ENV.fetch("MAILER_FROM", "noreply@example.com")
+  config.mailer_sender = ENV.fetch('MAILER_FROM', 'noreply@example.com')
 
   # Custom mailer class (must implement confirmation, magic_link, password_reset methods)
   # config.mailer_class = "RailsSimpleAuth::AuthMailer"
@@ -75,7 +75,7 @@ RailsSimpleAuth.configure do |config|
   # ============================================================================
 
   # Your user model class name
-  config.user_class_name = "<%= options[:user_model] %>"
+  config.user_class_name = '<%= options[:user_model] %>'
 
   # Custom session model (if you want to use your own)
   # config.session_class_name = "RailsSimpleAuth::Session"

@@ -10,3 +10,5 @@
 *.rbc
 .byebug_history
 Gemfile.lock
+.playwright-mcp/
+log/

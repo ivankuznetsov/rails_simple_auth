@@ -1,13 +1,15 @@
-require:
+plugins:
   - rubocop-rails
   - rubocop-minitest
 
 AllCops:
   TargetRubyVersion: 3.2
   NewCops: enable
+  SuggestExtensions: false
   Exclude:
-    - "vendor/**/*"
-    - "tmp/**/*"
+    - 'vendor/**/*'
+    - 'tmp/**/*'
+    - 'log/**/*'
 
 Style/Documentation:
   Enabled: false
@@ -15,10 +17,68 @@ Style/Documentation:
 Style/FrozenStringLiteralComment:
   Enabled: true
 
-Metrics/BlockLength:
-  Exclude:
-    - "test/**/*"
-    - "*.gemspec"
-
+# Gemspec and configuration have long lines
 Layout/LineLength:
   Max: 120
+  Exclude:
+    - '*.gemspec'
+    - 'lib/rails_simple_auth/configuration.rb'
+    - 'lib/generators/**/*'
+
+Metrics/BlockLength:
+  Exclude:
+    - 'test/**/*'
+    - '*.gemspec'
+    - 'lib/rails_simple_auth/models/concerns/**/*'
+
+Metrics/MethodLength:
+  Exclude:
+    - 'test/**/*'
+    - 'lib/rails_simple_auth/routes.rb'
+    - 'lib/rails_simple_auth/configuration.rb'
+    - 'lib/rails_simple_auth/controllers/concerns/**/*'
+    - 'lib/rails_simple_auth/models/concerns/**/*'
+    - 'lib/generators/**/*'
+    - 'app/controllers/**/*'
+
+Metrics/AbcSize:
+  Exclude:
+    - 'test/**/*'
+    - 'lib/rails_simple_auth/routes.rb'
+    - 'lib/rails_simple_auth/configuration.rb'
+    - 'lib/rails_simple_auth/controllers/concerns/**/*'
+    - 'lib/rails_simple_auth/models/concerns/**/*'
+    - 'lib/generators/**/*'
+    - 'app/controllers/**/*'
+
+Metrics/ClassLength:
+  Exclude:
+    - 'test/**/*'
+
+Metrics/CyclomaticComplexity:
+  Exclude:
+    - 'lib/rails_simple_auth/models/concerns/**/*'
+
+Metrics/PerceivedComplexity:
+  Exclude:
+    - 'lib/rails_simple_auth/models/concerns/**/*'
+
+# Flash messages are intentionally hardcoded - apps can customize via I18n
+Rails/I18nLocaleTexts:
+  Enabled: false
+
+Rails/RefuteMethods:
+  Exclude:
+    - 'test/test_helper.rb'
+
+Rails/DynamicFindBy:
+  Exclude:
+    - 'test/**/*'
+
+# Uses lambda for dynamic class resolution from config
+Rails/ReflectionClassName:
+  Exclude:
+    - 'lib/rails_simple_auth/models/session.rb'
+
+Style/SafeNavigationChainLength:
+  Enabled: false

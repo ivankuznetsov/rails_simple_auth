@@ -17,9 +17,9 @@ module RailsSimpleAuth
           return unless (session_token = cookies.signed.permanent[:session_token])
 
           session_record = RailsSimpleAuth.configuration.session_class
-                             .includes(:user)
-                             .active
-                             .find_by(id: session_token)
+                                          .includes(:user)
+                                          .active
+                                          .find_by(id: session_token)
 
           if session_record
             RailsSimpleAuth::Current.user = session_record.user
@@ -51,8 +51,8 @@ module RailsSimpleAuth
 
           # SECURITY: Validate path to prevent open redirect attacks
           # Only store relative paths that start with / but not //
-          return unless path.start_with?("/")
-          return if path.start_with?("//")
+          return unless path.start_with?('/')
+          return if path.start_with?('//')
 
           session[:return_to] = path
         end
@@ -63,34 +63,33 @@ module RailsSimpleAuth
 
         def redirect_to_sign_in
           respond_to do |format|
-            format.html { redirect_to new_session_path, alert: "Please sign in to continue." }
-            format.json { render json: { error: "Authentication required" }, status: :unauthorized }
-            format.turbo_stream { redirect_to new_session_path, alert: "Please sign in to continue." }
+            format.html { redirect_to new_session_path, alert: 'Please sign in to continue.' }
+            format.json { render json: { error: 'Authentication required' }, status: :unauthorized }
+            format.turbo_stream { redirect_to new_session_path, alert: 'Please sign in to continue.' }
           end
         end
 
         def client_ip
-          request.headers["CF-Connecting-IP"] ||
-            request.headers["X-Forwarded-For"]&.split(",")&.first&.strip ||
+          request.headers['CF-Connecting-IP'] ||
+            request.headers['X-Forwarded-For']&.split(',')&.first&.strip ||
             request.remote_ip
         end
 
         def resolve_path(config_key)
           path_config = RailsSimpleAuth.configuration.public_send(config_key)
 
-          result = case path_config
+          case path_config
           when Symbol then send(path_config)
           when Proc then path_config.call(self)
           when String then path_config
           else
-                     Rails.logger.warn(
-                       "[RailsSimpleAuth] Invalid path configuration for #{config_key}: " \
-                       "expected Symbol, Proc, or String, got #{path_config.class.name}. " \
-                       "Falling back to root_path."
-                     )
-                     root_path
+            Rails.logger.warn(
+              "[RailsSimpleAuth] Invalid path configuration for #{config_key}: " \
+              "expected Symbol, Proc, or String, got #{path_config.class.name}. " \
+              'Falling back to root_path.'
+            )
+            root_path
           end
-          result
         rescue NoMethodError => e
           Rails.logger.error(
             "[RailsSimpleAuth] Path helper '#{path_config}' not found for #{config_key}. " \

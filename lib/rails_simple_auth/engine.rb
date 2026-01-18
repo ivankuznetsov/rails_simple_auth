@@ -8,7 +8,7 @@ module RailsSimpleAuth
       g.test_framework :minitest
     end
 
-    initializer "rails_simple_auth.helpers" do
+    initializer 'rails_simple_auth.helpers' do
       ActiveSupport.on_load(:action_controller_base) do
         include RailsSimpleAuth::Controllers::Concerns::Authentication
         include RailsSimpleAuth::Controllers::Concerns::SessionManagement

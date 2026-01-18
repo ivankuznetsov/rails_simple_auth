@@ -18,13 +18,13 @@ module RailsSimpleAuth
           # - true (default): Links OAuth to existing email accounts (safe for providers that verify emails)
           # - false: Only allows OAuth for accounts created via OAuth with same provider+uid
           def from_oauth(auth_hash)
-            email = auth_hash.dig("info", "email")
-            provider = auth_hash["provider"]
-            uid = auth_hash["uid"]
+            email = auth_hash.dig('info', 'email')
+            provider = auth_hash['provider']
+            uid = auth_hash['uid']
 
             if email.blank?
               Rails.logger.warn(
-                "[RailsSimpleAuth] OAuth auth_hash missing email. " \
+                '[RailsSimpleAuth] OAuth auth_hash missing email. ' \
                 "Provider: #{provider}, UID: #{uid}. Ensure email scope is requested."
               )
               return nil
