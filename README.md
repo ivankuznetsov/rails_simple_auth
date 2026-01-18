@@ -251,7 +251,7 @@ temp_user = User.create!(
 ```ruby
 # When user decides to sign up for real
 temp_user.convert_to_permanent!(
-  email_address: "real@example.com",
+  email: "real@example.com",
   password: "secure_password"
 )
 # Sends confirmation email automatically if email confirmation is enabled

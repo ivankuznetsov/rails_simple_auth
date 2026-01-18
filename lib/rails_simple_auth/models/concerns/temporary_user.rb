@@ -25,13 +25,13 @@ module RailsSimpleAuth
           !temporary?
         end
 
-        def convert_to_permanent!(email_address:, password:)
+        def convert_to_permanent!(email:, password:)
           transaction do
             lock!
             raise RailsSimpleAuth::Error, "User #{id} is already permanent" unless temporary?
 
             update!(
-              email_address: email_address,
+              email_address: email,
               password: password,
               temporary: false
             )
