@@ -11,7 +11,8 @@ require 'rails_simple_auth/models/concerns/magic_linkable'
 require 'rails_simple_auth/models/concerns/oauth_connectable'
 require 'rails_simple_auth/models/concerns/temporary_user'
 require 'rails_simple_auth/models/current'
-require 'rails_simple_auth/models/session'
+# Session is NOT required here - it depends on ApplicationRecord which isn't available at gem load time
+# It will be autoloaded by the engine when Rails is ready
 
 # Controller concerns
 require 'rails_simple_auth/controllers/concerns/authentication'

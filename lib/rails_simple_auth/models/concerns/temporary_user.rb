@@ -18,8 +18,6 @@ module RailsSimpleAuth
         end
 
         def temporary?
-          return false unless respond_to?(:temporary)
-
           temporary == true
         end
 
@@ -27,25 +25,20 @@ module RailsSimpleAuth
           !temporary?
         end
 
-        def convert_to_permanent!(email:, password:)
-          raise RailsSimpleAuth::Error, "User #{id} is already permanent" unless temporary?
-
-          Rails.logger.info("[RailsSimpleAuth] Converting temporary user #{id} to permanent")
-
+        def convert_to_permanent!(email_address:, password:)
           transaction do
             lock!
+            raise RailsSimpleAuth::Error, "User #{id} is already permanent" unless temporary?
 
             update!(
-              email_address: email,
+              email_address: email_address,
               password: password,
               temporary: false
             )
           end
 
-          Rails.logger.info("[RailsSimpleAuth] Successfully converted user #{id} to permanent")
-
+          Rails.logger.info("[RailsSimpleAuth] Converted temporary user #{id} to permanent")
           send_conversion_confirmation_email
-
           self
         rescue ActiveRecord::RecordNotUnique
           errors.add(:email_address, 'has already been taken')

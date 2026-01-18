@@ -45,7 +45,7 @@ class TemporaryUserTest < Minitest::Test
     RailsSimpleAuth.configuration.temporary_user_cleanup_days = 7
 
     old_user = User.create!(email_address: 'old@example.com', password: 'password123', temporary: true)
-    old_user.update_column(:created_at, 10.days.ago)
+    old_user.update_column(:created_at, 10.days.ago) # rubocop:disable Rails/SkipsModelValidations
 
     recent_user = User.create!(email_address: 'recent@example.com', password: 'password123', temporary: true)
 
@@ -57,7 +57,7 @@ class TemporaryUserTest < Minitest::Test
     RailsSimpleAuth.configuration.temporary_user_cleanup_days = 7
 
     old_user = User.create!(email_address: 'old@example.com', password: 'password123', temporary: true)
-    old_user.update_column(:created_at, 5.days.ago)
+    old_user.update_column(:created_at, 5.days.ago) # rubocop:disable Rails/SkipsModelValidations
 
     assert_includes User.temporary_expired(3), old_user
     assert_not_includes User.temporary_expired(7), old_user
@@ -67,10 +67,10 @@ class TemporaryUserTest < Minitest::Test
     RailsSimpleAuth.configuration.temporary_user_cleanup_days = 7
 
     old_temp = User.create!(email_address: 'temp@example.com', password: 'password123', temporary: true)
-    old_temp.update_column(:created_at, 10.days.ago)
+    old_temp.update_column(:created_at, 10.days.ago) # rubocop:disable Rails/SkipsModelValidations
 
     old_perm = User.create!(email_address: 'perm@example.com', password: 'password123', temporary: false)
-    old_perm.update_column(:created_at, 10.days.ago)
+    old_perm.update_column(:created_at, 10.days.ago) # rubocop:disable Rails/SkipsModelValidations
 
     assert_includes User.temporary_expired, old_temp
     assert_not_includes User.temporary_expired, old_perm
@@ -79,7 +79,7 @@ class TemporaryUserTest < Minitest::Test
   def test_convert_to_permanent_updates_all_fields
     user = User.create!(email_address: 'temp@example.com', password: 'password123', temporary: true)
 
-    user.convert_to_permanent!(email: 'permanent@example.com', password: 'newpassword123')
+    user.convert_to_permanent!(email_address: 'permanent@example.com', password: 'newpassword123')
 
     user.reload
 
@@ -91,7 +91,7 @@ class TemporaryUserTest < Minitest::Test
   def test_convert_to_permanent_returns_self
     user = User.create!(email_address: 'temp@example.com', password: 'password123', temporary: true)
 
-    result = user.convert_to_permanent!(email: 'permanent@example.com', password: 'newpassword123')
+    result = user.convert_to_permanent!(email_address: 'permanent@example.com', password: 'newpassword123')
 
     assert_equal user, result
   end
@@ -101,7 +101,7 @@ class TemporaryUserTest < Minitest::Test
     temp_user = User.create!(email_address: 'temp@example.com', password: 'password123', temporary: true)
 
     assert_raises(ActiveRecord::RecordInvalid) do
-      temp_user.convert_to_permanent!(email: 'taken@example.com', password: 'newpassword123')
+      temp_user.convert_to_permanent!(email_address: 'taken@example.com', password: 'newpassword123')
     end
 
     assert_predicate temp_user.errors[:email_address], :any?
@@ -111,7 +111,7 @@ class TemporaryUserTest < Minitest::Test
     user = User.create!(email_address: 'perm@example.com', password: 'password123', temporary: false)
 
     error = assert_raises(RailsSimpleAuth::Error) do
-      user.convert_to_permanent!(email: 'new@example.com', password: 'newpassword123')
+      user.convert_to_permanent!(email_address: 'new@example.com', password: 'newpassword123')
     end
 
     assert_match(/already permanent/, error.message)
@@ -122,7 +122,7 @@ class TemporaryUserTest < Minitest::Test
     temp_user = User.create!(email_address: 'temp@example.com', password: 'password123', temporary: true)
 
     # Should not raise - temporary users can share emails until conversion
-    temp_user.convert_to_permanent!(email: 'unique@example.com', password: 'newpassword123')
+    temp_user.convert_to_permanent!(email_address: 'unique@example.com', password: 'newpassword123')
 
     assert_not temp_user.temporary?
   end

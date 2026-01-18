@@ -31,6 +31,8 @@ module RailsSimpleAuth
     end
 
     def after_successful_registration
+      destroy_temporary_user_session
+
       if RailsSimpleAuth.configuration.email_confirmation_enabled
         send_confirmation_email(@user)
         run_after_sign_up_callback(@user)
