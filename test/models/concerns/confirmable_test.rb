@@ -59,7 +59,7 @@ class ConfirmableTest < Minitest::Test
   def test_confirmation_token_is_verifiable
     user = User.create!(email: 'test@example.com', password: 'password123')
     token = user.generate_confirmation_token
-    found_user = User.find_signed(token, purpose: :email_confirmation)
+    found_user = User.find_signed(token, purpose: :confirm_email)
 
     assert_equal user, found_user
   end

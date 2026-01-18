@@ -39,13 +39,18 @@ module RailsSimpleAuth
           RailsSimpleAuth::Current.session = nil
         end
 
-        # Destroy temporary user session when signing in with a permanent account
+        # Destroy temporary user session when signing in with a different account
         # This cleans up guest/demo users when they sign in or register
-        def destroy_temporary_user_session
+        # @param signing_in_user [User, nil] The user being signed in (to avoid self-destruction)
+        def destroy_temporary_user_session(signing_in_user = nil)
           return unless RailsSimpleAuth.configuration.temporary_users_enabled
           return unless RailsSimpleAuth::Current.user&.temporary?
 
           temp_user = RailsSimpleAuth::Current.user
+
+          # Don't destroy if the user is re-authenticating as themselves
+          return if signing_in_user && temp_user.id == signing_in_user.id
+
           temp_user_id = temp_user.id
 
           temp_user.transaction do

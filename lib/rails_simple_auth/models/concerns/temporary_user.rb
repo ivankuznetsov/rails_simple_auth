@@ -27,6 +27,8 @@ module RailsSimpleAuth
 
         def convert_to_permanent!(email:, password:)
           transaction do
+            # Reload to discard any unpersisted changes from callbacks before locking
+            reload
             lock!
             raise RailsSimpleAuth::Error, "User #{id} is already permanent" unless temporary?
 

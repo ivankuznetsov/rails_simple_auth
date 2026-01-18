@@ -12,7 +12,7 @@ module RailsSimpleAuth
     end
 
     def show
-      user = user_class.find_signed(params[:token], purpose: :email_confirmation)
+      user = user_class.find_signed(params[:token], purpose: :confirm_email)
 
       if user
         user.confirm! if user.respond_to?(:confirm!)
@@ -28,7 +28,7 @@ module RailsSimpleAuth
     def create
       user = user_class.find_by(email: params[:email])
 
-      if user.respond_to?(:unconfirmed?) && user.unconfirmed?
+      if user.respond_to?(:unconfirmed_or_reconfirming?) && user.unconfirmed_or_reconfirming?
         token = user.generate_confirmation_token
         RailsSimpleAuth.configuration.mailer.confirmation(user, token).deliver_later
       end
