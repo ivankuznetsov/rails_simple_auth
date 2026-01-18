@@ -9,32 +9,25 @@
 
 ## Reporting a Vulnerability
 
-**Please do not report security vulnerabilities through public GitHub issues.**
+**Do not report security vulnerabilities through public GitHub issues.**
 
-Instead, please report security vulnerabilities by emailing:
-
-**ivan@ikuznetsov.com**
+Email security reports to the maintainer directly. You can find contact info on the [RubyGems page](https://rubygems.org/gems/rails_simple_auth).
 
 Please include:
+- Type of vulnerability
+- Steps to reproduce
+- Impact assessment
+- Proof-of-concept (if possible)
 
-1. **Description** of the vulnerability
-2. **Steps to reproduce** the issue
-3. **Potential impact** of the vulnerability
-4. **Suggested fix** (if you have one)
+## Response Timeline
 
-### What to expect
+- Acknowledgment: within 48 hours
+- Assessment: within 7 days
+- Fix and disclosure: coordinated with reporter
 
-- **Acknowledgment**: We will acknowledge receipt of your report within 48 hours
-- **Initial response**: We will provide an initial assessment within 7 days
-- **Resolution timeline**: We aim to resolve critical issues within 30 days
-- **Credit**: If you wish, we will credit you in the release notes when the fix is published
+## Security Best Practices
 
-### Safe Harbor
-
-We consider security research conducted in accordance with this policy to be:
-
-- Authorized and we will not pursue legal action
-- Conducted in good faith
-- Valuable to the project and community
-
-Thank you for helping keep rails_simple_auth and its users safe!
+1. Always use HTTPS in production
+2. Set appropriate session expiry times
+3. Keep the gem updated
+4. Use environment variables for secrets
