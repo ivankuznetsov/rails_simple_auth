@@ -10,7 +10,7 @@ module RailsSimpleAuth
       @confirmation_url = main_app.confirmation_url(token: token)
 
       mail(
-        to: user.email_address,
+        to: user.email,
         subject: 'Confirm your email'
       )
     end
@@ -21,7 +21,7 @@ module RailsSimpleAuth
       @magic_link_url = main_app.magic_link_url(token: token)
 
       mail(
-        to: user.email_address,
+        to: user.email,
         subject: 'Sign in to your account'
       )
     end
@@ -32,7 +32,7 @@ module RailsSimpleAuth
       @password_reset_url = main_app.edit_password_url(token: token)
 
       mail(
-        to: user.email_address,
+        to: user.email,
         subject: 'Reset your password'
       )
     end

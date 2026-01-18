@@ -8,8 +8,8 @@
 
     <%= form_with url: main_app.confirmations_path, class: "rsa-auth-form__form" do |form| %>
       <div class="rsa-auth-form__group">
-        <%= form.label :email_address, "Email", class: "rsa-auth-form__label" %>
-        <%= form.email_field :email_address,
+        <%= form.label :email, "Email", class: "rsa-auth-form__label" %>
+        <%= form.email_field :email,
               class: "rsa-auth-form__input",
               required: true,
               autofocus: true %>

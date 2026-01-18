@@ -27,7 +27,7 @@ module RailsSimpleAuth
     private
 
     def registration_params
-      params.expect(user: %i[email_address password])
+      params.expect(user: %i[email password])
     end
 
     def after_successful_registration

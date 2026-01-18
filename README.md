@@ -68,7 +68,7 @@ class CreateUsers < ActiveRecord::Migration[8.0]
   def change
     create_table :users do |t|
       # Required by gem
-      t.string :email_address, null: false
+      t.string :email, null: false
       t.string :password_digest, null: false
       t.datetime :confirmed_at  # if using Confirmable
 
@@ -82,7 +82,7 @@ class CreateUsers < ActiveRecord::Migration[8.0]
       t.timestamps
     end
 
-    add_index :users, :email_address, unique: true
+    add_index :users, :email, unique: true
   end
 end
 ```
@@ -240,7 +240,7 @@ end
 ```ruby
 # Create a temporary user (no email/password required)
 temp_user = User.create!(
-  email_address: "temp_#{SecureRandom.hex(8)}@temp.local",
+  email: "temp_#{SecureRandom.hex(8)}@temp.local",
   password: SecureRandom.hex(16),
   temporary: true
 )
@@ -338,19 +338,19 @@ class UserMailer < ApplicationMailer
   def confirmation(user, token)
     @user = user
     @confirmation_url = edit_confirmation_url(token: token)
-    mail(to: user.email_address, subject: "Confirm your email")
+    mail(to: user.email, subject: "Confirm your email")
   end
 
   def magic_link(user, token)
     @user = user
     @magic_link_url = magic_link_login_url(token: token)
-    mail(to: user.email_address, subject: "Your sign-in link")
+    mail(to: user.email, subject: "Your sign-in link")
   end
 
   def password_reset(user, token)
     @user = user
     @reset_url = edit_password_url(token: token)
-    mail(to: user.email_address, subject: "Reset your password")
+    mail(to: user.email, subject: "Reset your password")
   end
 end
 ```

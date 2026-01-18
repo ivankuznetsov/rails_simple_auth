@@ -11,7 +11,7 @@ class AddRailsSimpleAuth < ActiveRecord::Migration[8.0]
     # Uncomment and modify as needed:
 
     # Required fields for authentication
-    # add_column :users, :email_address, :string, null: false
+    # add_column :users, :email, :string, null: false
     # add_column :users, :password_digest, :string, null: false
 
     # Email confirmation (optional - if using Confirmable concern)
@@ -22,7 +22,7 @@ class AddRailsSimpleAuth < ActiveRecord::Migration[8.0]
     # add_column :users, :admin, :boolean, default: false
 
     # Indexes
-    # add_index :users, :email_address, unique: true
+    # add_index :users, :email, unique: true
     # add_index :users, :confirmed_at
 
     # ============================================================================

@@ -26,7 +26,7 @@ module RailsSimpleAuth
     def new; end
 
     def create
-      user = user_class.find_by(email: params[:email_address])
+      user = user_class.find_by(email: params[:email])
 
       if user.respond_to?(:unconfirmed?) && user.unconfirmed?
         token = user.generate_confirmation_token

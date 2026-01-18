@@ -4,14 +4,14 @@ require 'test_helper'
 
 class SessionTest < Minitest::Test
   def test_belongs_to_user
-    user = User.create!(email_address: 'test@example.com', password: 'password123')
+    user = User.create!(email: 'test@example.com', password: 'password123')
     session = RailsSimpleAuth::Session.create!(user: user)
 
     assert_equal user, session.user
   end
 
   def test_recent_scope_orders_by_created_at_desc
-    user = User.create!(email_address: 'test@example.com', password: 'password123')
+    user = User.create!(email: 'test@example.com', password: 'password123')
     old_session = RailsSimpleAuth::Session.create!(user: user, created_at: 2.days.ago)
     new_session = RailsSimpleAuth::Session.create!(user: user, created_at: 1.day.ago)
 
@@ -22,7 +22,7 @@ class SessionTest < Minitest::Test
   end
 
   def test_active_scope_returns_non_expired_sessions
-    user = User.create!(email_address: 'test@example.com', password: 'password123')
+    user = User.create!(email: 'test@example.com', password: 'password123')
     RailsSimpleAuth.configure { |c| c.session_expiry = 30.days }
 
     active = RailsSimpleAuth::Session.create!(user: user, created_at: 1.day.ago)
@@ -32,7 +32,7 @@ class SessionTest < Minitest::Test
   end
 
   def test_expired_scope_returns_expired_sessions
-    user = User.create!(email_address: 'test@example.com', password: 'password123')
+    user = User.create!(email: 'test@example.com', password: 'password123')
     RailsSimpleAuth.configure { |c| c.session_expiry = 30.days }
 
     RailsSimpleAuth::Session.create!(user: user, created_at: 1.day.ago)
@@ -42,7 +42,7 @@ class SessionTest < Minitest::Test
   end
 
   def test_cleanup_expired_deletes_expired_sessions
-    user = User.create!(email_address: 'test@example.com', password: 'password123')
+    user = User.create!(email: 'test@example.com', password: 'password123')
     RailsSimpleAuth.configure { |c| c.session_expiry = 30.days }
 
     active = RailsSimpleAuth::Session.create!(user: user, created_at: 1.day.ago)

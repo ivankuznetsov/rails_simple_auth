@@ -31,7 +31,7 @@ module RailsSimpleAuth
             raise RailsSimpleAuth::Error, "User #{id} is already permanent" unless temporary?
 
             attrs = {
-              email_address: email,
+              email: email,
               password: password,
               temporary: false
             }
@@ -45,7 +45,7 @@ module RailsSimpleAuth
           send_conversion_confirmation_email
           self
         rescue ActiveRecord::RecordNotUnique
-          errors.add(:email_address, 'has already been taken')
+          errors.add(:email, 'has already been taken')
           raise ActiveRecord::RecordInvalid, self
         end
 

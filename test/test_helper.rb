@@ -21,7 +21,7 @@ end
 # Create test schema
 ActiveRecord::Schema.define do
   create_table :users, force: true do |t|
-    t.string :email_address, null: false
+    t.string :email, null: false
     t.string :password_digest
     t.datetime :confirmed_at
     t.string :oauth_provider
@@ -30,7 +30,7 @@ ActiveRecord::Schema.define do
     t.timestamps
   end
 
-  add_index :users, :email_address, unique: true
+  add_index :users, :email, unique: true
 
   create_table :sessions, force: true do |t|
     t.references :user, null: false

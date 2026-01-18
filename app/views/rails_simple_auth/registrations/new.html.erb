@@ -4,13 +4,13 @@
 
     <%= form_with model: @user, url: main_app.sign_up_path, class: "rsa-auth-form__form" do |form| %>
       <div class="rsa-auth-form__group">
-        <%= form.label :email_address, "Email", class: "rsa-auth-form__label" %>
-        <%= form.email_field :email_address,
-              class: "rsa-auth-form__input #{@user.errors[:email_address].any? ? 'rsa-auth-form__input--error' : ''}",
+        <%= form.label :email, "Email", class: "rsa-auth-form__label" %>
+        <%= form.email_field :email,
+              class: "rsa-auth-form__input #{@user.errors[:email].any? ? 'rsa-auth-form__input--error' : ''}",
               required: true,
               autofocus: true %>
-        <% if @user.errors[:email_address].any? %>
-          <p class="rsa-auth-form__error"><%= @user.errors[:email_address].first %></p>
+        <% if @user.errors[:email].any? %>
+          <p class="rsa-auth-form__error"><%= @user.errors[:email].first %></p>
         <% end %>
       </div>
 

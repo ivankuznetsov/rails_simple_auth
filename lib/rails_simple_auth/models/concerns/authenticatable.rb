@@ -14,7 +14,7 @@ module RailsSimpleAuth
                    dependent: :destroy,
                    inverse_of: :user
 
-          validates :email_address,
+          validates :email,
                     presence: true,
                     uniqueness: { case_sensitive: false },
                     format: { with: URI::MailTo::EMAIL_REGEXP },
@@ -22,14 +22,14 @@ module RailsSimpleAuth
 
           validate :password_meets_minimum_length, if: :password_required?
 
-          normalizes :email_address, with: ->(email) { email.strip.downcase }
+          normalizes :email, with: ->(email) { email.strip.downcase }
         end
 
         class_methods do
           def find_by_email(email)
             return nil if email.blank?
 
-            find_by(email_address: email.to_s.strip.downcase)
+            find_by(email: email.to_s.strip.downcase)
           end
         end
 

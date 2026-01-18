@@ -17,7 +17,7 @@ module RailsSimpleAuth
     def edit; end
 
     def create
-      user = user_class.find_by(email: params[:email_address])
+      user = user_class.find_by(email: params[:email])
 
       if user && can_reset_password?(user)
         token = user.generate_password_reset_token

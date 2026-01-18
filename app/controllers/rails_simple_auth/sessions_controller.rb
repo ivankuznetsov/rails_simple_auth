@@ -10,7 +10,7 @@ module RailsSimpleAuth
       rate_limit to: 5, within: 15.minutes, by: -> { client_ip }, only: :create,
                  with: -> { redirect_to new_session_path, alert: 'Too many login attempts. Please try again later.' }
 
-      rate_limit to: 3, within: 10.minutes, by: -> { params[:email_address].to_s.downcase }, only: :request_magic_link,
+      rate_limit to: 3, within: 10.minutes, by: -> { params[:email].to_s.downcase }, only: :request_magic_link,
                  with: lambda {
                    redirect_to new_session_path, alert: 'Too many magic link requests. Please try again later.'
                  }
@@ -26,20 +26,20 @@ module RailsSimpleAuth
     end
 
     def create
-      user = user_class.find_by(email: params[:email_address]) || user_class.new(password: SecureRandom.hex(32))
+      user = user_class.find_by(email: params[:email]) || user_class.new(password: SecureRandom.hex(32))
 
       if user.authenticate(params[:password]) && user.persisted?
         if confirmation_required_for?(user)
           @error_message = 'Please confirm your email before signing in.'
-          @previous_email = params[:email_address]
+          @previous_email = params[:email]
           render :new, status: :unprocessable_content
         else
           sign_in_and_redirect(user)
         end
       else
-        Rails.logger.warn("Failed login attempt for email: #{params[:email_address]} from IP: #{client_ip}")
+        Rails.logger.warn("Failed login attempt for email: #{params[:email]} from IP: #{client_ip}")
         @error_message = 'Invalid email or password'
-        @previous_email = params[:email_address]
+        @previous_email = params[:email]
         render :new, status: :unprocessable_content
       end
     end
@@ -56,7 +56,7 @@ module RailsSimpleAuth
     end
 
     def request_magic_link
-      user = user_class.find_by(email: params[:email_address])
+      user = user_class.find_by(email: params[:email])
 
       if user.respond_to?(:generate_magic_link_token)
         token = user.generate_magic_link_token
