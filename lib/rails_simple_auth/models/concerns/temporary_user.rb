@@ -30,11 +30,15 @@ module RailsSimpleAuth
             lock!
             raise RailsSimpleAuth::Error, "User #{id} is already permanent" unless temporary?
 
-            update!(
+            attrs = {
               email_address: email,
               password: password,
               temporary: false
-            )
+            }
+            # Reset confirmation so new email requires verification
+            attrs[:confirmed_at] = nil if respond_to?(:confirmed_at)
+
+            update!(attrs)
           end
 
           Rails.logger.info("[RailsSimpleAuth] Converted temporary user #{id} to permanent")

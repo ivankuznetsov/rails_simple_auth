@@ -4,6 +4,11 @@ class AddTemporaryToUsers < ActiveRecord::Migration[<%= Rails::VERSION::MAJOR %>
   def change
     add_column :users, :temporary, :boolean, default: false, null: false
     add_index :users, [:temporary, :created_at], name: "index_users_on_temporary_and_created_at"
+
+    # Remove the global unique index on email_address (if it exists)
+    # and replace with a partial unique index for permanent users only.
+    # This allows temporary users to share email addresses.
+    remove_index :users, :email_address, if_exists: true
     add_index :users, :email_address, unique: true, where: "temporary = false",
               name: "index_users_on_email_address_permanent_unique"
   end
