@@ -10,8 +10,8 @@ Simple, secure authentication for Rails 8+ applications. Built on Rails primitiv
 - [**Password reset**](#routes) - secure password recovery flow
 - [**OAuth support**](#oauth-setup) - Google, GitHub, and more
 - [**Temporary users**](#temporary-users-guest-accounts) - guest accounts that convert to permanent
-- [**Rate limiting**](#security-features) - built-in protection on all endpoints
-- [**Session tracking**](#security-features) - IP and user agent logging
+- [**Rate limiting**](#rate-limiting) - built-in protection on all endpoints
+- [**Session tracking**](#session-management) - IP and user agent logging
 - [**Customizable styling**](#styling) - CSS variables for easy theming
 - [**Custom mailers**](#mailer) - use your own branded email templates
 
@@ -480,6 +480,112 @@ The gem adds these routes:
 | GET | `/magic_link_form` | Magic link form |
 | POST | `/request_magic_link` | Send magic link |
 | GET | `/magic_link` | Login via magic link |
+
+## Rate Limiting
+
+All authentication endpoints are rate limited using Rails 8's `rate_limit` DSL to prevent brute force attacks.
+
+### Default Limits
+
+| Action | Limit | Period | Scope |
+|--------|-------|--------|-------|
+| Sign in | 5 requests | 15 minutes | per IP |
+| Sign up | 5 requests | 1 hour | per IP |
+| Magic link request | 3 requests | 10 minutes | per email |
+| Password reset | 3 requests | 1 hour | per IP |
+| Email confirmation | 3 requests | 1 hour | per IP |
+
+### Customizing Limits
+
+```ruby
+RailsSimpleAuth.configure do |config|
+  config.rate_limits = {
+    sign_in: { limit: 10, period: 30.minutes },
+    sign_up: { limit: 3, period: 1.hour },
+    magic_link: { limit: 5, period: 15.minutes },
+    password_reset: { limit: 5, period: 1.hour },
+    confirmation: { limit: 5, period: 1.hour }
+  }
+end
+```
+
+### Disabling Rate Limiting
+
+To disable rate limiting for a specific action, set it to `nil`:
+
+```ruby
+config.rate_limits = {
+  sign_in: nil,  # No rate limiting on sign in
+  sign_up: { limit: 5, period: 1.hour }
+}
+```
+
+When rate limited, users see a "Too many requests" error and must wait for the period to expire.
+
+## Session Management
+
+Sessions track user authentication state with IP address and user agent for security auditing.
+
+### What's Tracked
+
+Each session stores:
+- **user_id** - The authenticated user
+- **ip_address** - Client IP at sign-in time
+- **user_agent** - Browser/device information
+- **created_at** - When the session was created
+
+### Session Expiration
+
+Sessions expire after 30 days by default:
+
+```ruby
+RailsSimpleAuth.configure do |config|
+  config.session_expiry = 30.days  # Default
+  # config.session_expiry = 7.days  # Shorter sessions
+end
+```
+
+### Querying Sessions
+
+```ruby
+# All sessions for a user
+current_user.sessions
+
+# Recent sessions first
+current_user.sessions.recent
+
+# Active sessions (not expired)
+current_user.sessions.active
+
+# Expired sessions
+current_user.sessions.expired
+```
+
+### Session Cleanup
+
+Expired sessions can be cleaned up manually or via scheduled job:
+
+```ruby
+# Clean up all expired sessions
+RailsSimpleAuth::Session.cleanup_expired!
+```
+
+Add to your scheduler:
+
+```ruby
+class CleanupExpiredSessionsJob < ApplicationJob
+  def perform
+    count = RailsSimpleAuth::Session.cleanup_expired!
+    Rails.logger.info "Cleaned up #{count} expired sessions"
+  end
+end
+```
+
+### Security Behaviors
+
+- **Password change**: All sessions are invalidated when a user changes their password
+- **Account conversion**: All sessions are invalidated when a temporary user converts to permanent
+- **Sign out**: Only the current session is destroyed (other devices stay signed in)
 
 ## Security Features
 
