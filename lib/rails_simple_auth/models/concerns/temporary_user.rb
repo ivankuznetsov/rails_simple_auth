@@ -18,7 +18,7 @@ module RailsSimpleAuth
         end
 
         def temporary?
-          temporary == true
+          temporary
         end
 
         def permanent?

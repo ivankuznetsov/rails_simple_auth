@@ -58,7 +58,7 @@ module RailsSimpleAuth
             temp_user.destroy!
           end
 
-          Rails.logger.info("[RailsSimpleAuth] Destroyed temporary user #{temp_user_id} on sign in")
+          Rails.logger.info "[RailsSimpleAuth] Destroyed temporary user #{temp_user_id} on sign in"
         rescue ActiveRecord::RecordNotDestroyed => e
           Rails.logger.error("[RailsSimpleAuth] Failed to destroy temporary user #{temp_user_id}: #{e.message}")
         end
