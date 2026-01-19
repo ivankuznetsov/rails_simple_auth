@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.11] - 2026-01-19
+
+### Added
+
+- **OAuth provider display names** - Configure human-readable names for OAuth buttons
+  ```ruby
+  # Hash format with custom display names
+  config.enable_oauth(google_oauth2: "Google", github: "GitHub")
+
+  # Symbol format still works (backward compatible)
+  config.enable_oauth(:google_oauth2, :github)
+  ```
+- `oauth_provider_display_name(provider)` method returns the display name, falling back to titleized provider name with `_oauth2` suffix removed
+
 ## [1.0.10] - 2026-01-19
 
 ### Fixed

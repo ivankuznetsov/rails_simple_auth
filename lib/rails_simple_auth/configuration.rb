@@ -2,7 +2,7 @@
 
 module RailsSimpleAuth
   class Configuration
-    attr_accessor :magic_link_enabled, :email_confirmation_enabled, :oauth_enabled, :oauth_providers, :oauth_link_existing_accounts,
+    attr_accessor :magic_link_enabled, :email_confirmation_enabled, :oauth_enabled, :oauth_providers, :oauth_provider_names, :oauth_link_existing_accounts,
                   :magic_link_expiry, :password_reset_expiry, :confirmation_expiry, :session_expiry,
                   :rate_limits,
                   :after_sign_in_path, :after_sign_out_path, :after_sign_up_path, :after_confirmation_path,
@@ -20,6 +20,7 @@ module RailsSimpleAuth
       @email_confirmation_enabled = true
       @oauth_enabled = false
       @oauth_providers = []
+      @oauth_provider_names = {}
       @oauth_link_existing_accounts = true # Allow OAuth to link to existing email accounts
 
       @magic_link_expiry = 15.minutes
@@ -87,13 +88,34 @@ module RailsSimpleAuth
             "Original error: #{e.message}"
     end
 
+    # Enable OAuth providers with optional display names
+    # Usage:
+    #   enable_oauth(:google_oauth2, :github)  # Uses default display names
+    #   enable_oauth(google_oauth2: "Google", github: "GitHub")  # Custom display names
     def enable_oauth(*providers)
       self.oauth_enabled = true
-      self.oauth_providers = providers.map(&:to_sym)
+
+      if providers.length == 1 && providers.first.is_a?(Hash)
+        # Hash format: { google_oauth2: "Google", github: "GitHub" }
+        provider_hash = providers.first
+        self.oauth_providers = provider_hash.keys.map(&:to_sym)
+        self.oauth_provider_names = provider_hash.transform_keys(&:to_sym)
+      else
+        # Symbol format: :google_oauth2, :github (backward compatible)
+        self.oauth_providers = providers.map(&:to_sym)
+        self.oauth_provider_names = {}
+      end
     end
 
     def oauth_provider_enabled?(provider)
       oauth_enabled && oauth_providers.include?(provider.to_sym)
+    end
+
+    # Get display name for an OAuth provider
+    # Falls back to titleized provider name if no custom name is configured
+    def oauth_provider_display_name(provider)
+      provider_sym = provider.to_sym
+      oauth_provider_names[provider_sym] || provider.to_s.gsub(/_oauth2$/, "").titleize
     end
 
     def rate_limit_for(action)
