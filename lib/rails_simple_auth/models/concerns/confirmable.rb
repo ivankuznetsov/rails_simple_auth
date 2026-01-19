@@ -44,7 +44,7 @@ module RailsSimpleAuth
         # Returns true on success, false on failure (with errors populated)
         def confirm!
           attrs = { confirmed_at: Time.current }
-          attrs[:temporary] = false if respond_to?(:temporary?)
+          attrs[:temporary] = false if has_attribute?(:temporary)
 
           if reconfirming?
             # Email change confirmation - check email uniqueness first
