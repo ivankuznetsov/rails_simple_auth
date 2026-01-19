@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.6] - 2025-01-19
+
+### Added
+
+- **Database-level email uniqueness** - Partial unique index ensures permanent users have unique emails at database level (not just Rails validation)
+
+### Changed
+
+- Simplified `temporary?` method for cleaner implementation
+
 ## [1.0.5] - 2025-01-19
 
 ### Added
