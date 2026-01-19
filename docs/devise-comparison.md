@@ -42,10 +42,11 @@ Both gems handle the basics well:
 | **Magic link authentication** | ✅ Built-in | ❌ Requires gem |
 | **Temporary/Guest users** | ✅ Built-in | ❌ Manual implementation |
 | **Rate limiting** | ✅ Rails 8 DSL | ❌ Rack::Attack or manual |
-| **Remember me** | ❌ | ✅ Rememberable module |
+| **Session duration** | ✅ Configurable (default 30 days) | ✅ Rememberable module |
 | **Account lockout** | ❌ | ✅ Lockable module |
-| **Login attempt tracking** | ❌ | ✅ Trackable module |
-| **Multiple user types** | ❌ | ✅ Scopes (User, Admin) |
+| **Login attempt tracking** | ✅ IP/User-agent per session | ✅ Trackable module |
+| **Multiple user types** | ✅ Single table with role column | ✅ Separate scopes |
+| **Admin functionality** | ✅ Simple `admin?` method | ✅ Separate Admin model |
 
 ### Modern Features
 
@@ -294,12 +295,64 @@ end
 
 ### Choose Devise When:
 
-- **You need "remember me" functionality** — Devise handles this elegantly
 - **Account lockout is required** — Lock after N failed attempts
-- **Multiple user types with different auth** — Admin vs User scopes
+- **Completely separate user models** — Different tables for Admin vs User
 - **Your team already knows Devise** — Familiarity reduces onboarding time
 - **You need extensive documentation** — 10+ years of Stack Overflow answers
 - **Battle-tested is paramount** — Powers millions of applications
+
+### Session Duration Philosophy
+
+**Devise** uses "remember me" checkbox — short sessions by default, longer if user opts in.
+
+**RailsSimpleAuth** uses configurable session expiration for everyone (default 30 days):
+
+```ruby
+RailsSimpleAuth.configure do |config|
+  config.session_expiry = 30.days  # All users get this duration
+end
+```
+
+This is simpler and matches modern app expectations where users stay logged in. Adjust the duration based on your security requirements.
+
+### Admin Functionality
+
+**Devise** typically uses separate models with different scopes:
+
+```ruby
+# Separate tables, separate routes, separate authentication
+devise_for :users
+devise_for :admins
+```
+
+**RailsSimpleAuth** uses a single table with role-based access — the Rails way:
+
+```ruby
+# Migration
+add_column :users, :admin, :boolean, default: false
+
+# Model
+class User < ApplicationRecord
+  authenticates_with :confirmable
+
+  def admin?
+    admin == true
+  end
+end
+
+# Controller
+class AdminController < ApplicationController
+  before_action :require_admin
+
+  private
+
+  def require_admin
+    redirect_to root_path, alert: "Not authorized" unless current_user&.admin?
+  end
+end
+```
+
+This approach is simpler, avoids duplicate authentication logic, and follows Rails conventions. For more complex role systems, add a `role` column or use a gem like Pundit for authorization.
 
 ## Migration Guide: Devise to RailsSimpleAuth
 
@@ -375,7 +428,7 @@ The choice between RailsSimpleAuth and Devise isn't about which is "better"—it
 
 **RailsSimpleAuth** represents the Rails 8 philosophy: simple, explicit, built on primitives. It includes modern features like magic links, temporary users, and rate limiting out of the box. You can read and understand the entire codebase in an afternoon.
 
-**Devise** remains the comprehensive solution with a decade of battle-testing. If you need remember-me, account lockout, or multiple authentication scopes, Devise delivers these without custom code.
+**Devise** remains the comprehensive solution with a decade of battle-testing. If you need account lockout or completely separate authentication models (different tables for Admin vs User), Devise delivers these without custom code.
 
 For new Rails 8+ projects prioritizing simplicity and modern authentication patterns, RailsSimpleAuth offers a compelling alternative. For complex requirements or teams experienced with Devise, the incumbent remains a solid choice.
 

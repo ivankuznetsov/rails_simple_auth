@@ -599,6 +599,72 @@ end
 - **Account conversion**: All sessions are invalidated when a temporary user converts to permanent
 - **Sign out**: Only the current session is destroyed (other devices stay signed in)
 
+## Admin Users
+
+RailsSimpleAuth uses a single table with role-based access — the Rails way. No separate admin models or authentication flows needed.
+
+### Setup
+
+Add an admin column to your users table:
+
+```ruby
+# Migration
+add_column :users, :admin, :boolean, default: false
+```
+
+Add a helper method to your model:
+
+```ruby
+class User < ApplicationRecord
+  authenticates_with :confirmable
+
+  def admin?
+    admin == true
+  end
+end
+```
+
+### Protecting Admin Routes
+
+```ruby
+class AdminController < ApplicationController
+  before_action :require_admin
+
+  private
+
+  def require_admin
+    redirect_to root_path, alert: "Not authorized" unless current_user&.admin?
+  end
+end
+
+# Or as a concern
+module AdminAuthentication
+  extend ActiveSupport::Concern
+
+  included do
+    before_action :require_admin
+  end
+
+  private
+
+  def require_admin
+    redirect_to root_path, alert: "Not authorized" unless current_user&.admin?
+  end
+end
+```
+
+### Creating Admin Users
+
+```ruby
+# Console
+User.find_by(email: "admin@example.com").update!(admin: true)
+
+# Seeds
+User.create!(email: "admin@example.com", password: "secure123", admin: true)
+```
+
+For more complex role systems, consider adding a `role` enum or using an authorization gem like [Pundit](https://github.com/varvet/pundit).
+
 ## Security Features
 
 - **BCrypt password hashing** with salts
