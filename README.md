@@ -38,17 +38,28 @@ rails generate rails_simple_auth:install
 rails db:migrate
 ```
 
-Add concerns to your User model:
+Add authentication to your User model:
 
 ```ruby
 class User < ApplicationRecord
-  include RailsSimpleAuth::Models::Concerns::Authenticatable
-  include RailsSimpleAuth::Models::Concerns::Confirmable      # optional
-  include RailsSimpleAuth::Models::Concerns::MagicLinkable    # optional
-  include RailsSimpleAuth::Models::Concerns::OAuthConnectable # optional
+  authenticates_with :confirmable, :magic_linkable, :oauth, :temporary
 
   # Your custom fields and validations
   validates :company_name, presence: true
+end
+```
+
+Available modules:
+- `:confirmable` - Email confirmation for new accounts
+- `:magic_linkable` - Passwordless sign-in via email
+- `:oauth` - OAuth provider support (Google, GitHub, etc.)
+- `:temporary` - Guest accounts that convert to permanent
+
+For basic email/password auth only:
+
+```ruby
+class User < ApplicationRecord
+  authenticates_with
 end
 ```
 
@@ -230,12 +241,11 @@ rails generate rails_simple_auth:temporary_users
 rails db:migrate
 ```
 
-2. Add the concern to your User model:
+2. Add the `:temporary` module to your User model:
 
 ```ruby
 class User < ApplicationRecord
-  include RailsSimpleAuth::Models::Concerns::Authenticatable
-  include RailsSimpleAuth::Models::Concerns::TemporaryUser  # Add this
+  authenticates_with :confirmable, :temporary
 end
 ```
 

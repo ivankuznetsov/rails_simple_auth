@@ -249,14 +249,12 @@ bundle add rails_simple_auth
 rails generate rails_simple_auth:install
 rails db:migrate
 
-# 3. Add concern to User model
+# 3. Add authentication to User model
 ```
 
 ```ruby
 class User < ApplicationRecord
-  include RailsSimpleAuth::Models::Concerns::Authenticatable
-  include RailsSimpleAuth::Models::Concerns::Confirmable      # optional
-  include RailsSimpleAuth::Models::Concerns::MagicLinkable    # optional
+  authenticates_with :confirmable, :magic_linkable, :oauth, :temporary
 end
 ```
 
@@ -333,8 +331,7 @@ end
 
 # After (RailsSimpleAuth)
 class User < ApplicationRecord
-  include RailsSimpleAuth::Models::Concerns::Authenticatable
-  include RailsSimpleAuth::Models::Concerns::Confirmable
+  authenticates_with :confirmable
 end
 ```
 
