@@ -4,13 +4,19 @@ module RailsSimpleAuth
   class AuthMailer < ApplicationMailer
     default from: -> { RailsSimpleAuth.configuration.mailer_sender }
 
+    # Use the mailers folder for templates instead of auth_mailer
+    self.mailer_name = 'rails_simple_auth/mailers'
+
     def confirmation(user, token)
       @user = user
       @token = token
       @confirmation_url = main_app.confirmation_url(token: token)
 
+      # Use confirmable_email for reconfirmation (email change) scenarios
+      recipient = user.respond_to?(:confirmable_email) ? user.confirmable_email : user.email
+
       mail(
-        to: user.email_address,
+        to: recipient,
         subject: 'Confirm your email'
       )
     end
@@ -21,7 +27,7 @@ module RailsSimpleAuth
       @magic_link_url = main_app.magic_link_url(token: token)
 
       mail(
-        to: user.email_address,
+        to: user.email,
         subject: 'Sign in to your account'
       )
     end
@@ -32,7 +38,7 @@ module RailsSimpleAuth
       @password_reset_url = main_app.edit_password_url(token: token)
 
       mail(
-        to: user.email_address,
+        to: user.email,
         subject: 'Reset your password'
       )
     end

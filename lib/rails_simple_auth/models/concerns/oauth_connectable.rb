@@ -62,7 +62,7 @@ module RailsSimpleAuth
 
             # Create new user for new OAuth signups
             user = new(
-              email_address: email,
+              email: email,
               password: SecureRandom.hex(32) # Random password for OAuth users
             )
 

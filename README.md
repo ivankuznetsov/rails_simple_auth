@@ -9,6 +9,7 @@ Simple, secure authentication for Rails 8+ applications. Built on Rails primitiv
 - **Email confirmation** with signed tokens
 - **Password reset** with signed tokens
 - **OAuth support** (Google, GitHub, etc.)
+- **Temporary users** (guest mode) with conversion to permanent
 - **Rate limiting** built-in
 - **Session tracking** with IP and user agent
 - **Customizable styling** via CSS variables
@@ -67,7 +68,7 @@ class CreateUsers < ActiveRecord::Migration[8.0]
   def change
     create_table :users do |t|
       # Required by gem
-      t.string :email_address, null: false
+      t.string :email, null: false
       t.string :password_digest, null: false
       t.datetime :confirmed_at  # if using Confirmable
 
@@ -81,7 +82,7 @@ class CreateUsers < ActiveRecord::Migration[8.0]
       t.timestamps
     end
 
-    add_index :users, :email_address, unique: true
+    add_index :users, :email, unique: true
   end
 end
 ```
@@ -203,6 +204,77 @@ class User < ApplicationRecord
 end
 ```
 
+## Temporary Users (Guest Mode)
+
+Allow visitors to try your app without signing up, then convert to permanent accounts later.
+
+### Setup
+
+1. Generate the migration:
+
+```bash
+rails generate rails_simple_auth:temporary_users
+rails db:migrate
+```
+
+2. Include the concern in your User model:
+
+```ruby
+class User < ApplicationRecord
+  include RailsSimpleAuth::Models::Concerns::Authenticatable
+  include RailsSimpleAuth::Models::Concerns::TemporaryUser  # Add this
+end
+```
+
+3. Enable in configuration:
+
+```ruby
+RailsSimpleAuth.configure do |config|
+  config.temporary_users_enabled = true
+  config.temporary_user_cleanup_days = 7  # Auto-cleanup after 7 days
+end
+```
+
+### Creating Temporary Users
+
+```ruby
+# Create a temporary user (no email/password required)
+temp_user = User.create!(
+  email: "temp_#{SecureRandom.hex(8)}@temp.local",
+  password: SecureRandom.hex(16),
+  temporary: true
+)
+```
+
+### Converting to Permanent Account
+
+```ruby
+# When user decides to sign up for real
+temp_user.convert_to_permanent!(
+  email: "real@example.com",
+  password: "secure_password"
+)
+# Sends confirmation email automatically if email confirmation is enabled
+```
+
+### Scopes
+
+```ruby
+User.temporary          # All temporary users
+User.permanent          # All permanent users
+User.temporary_expired  # Temporary users older than cleanup_days
+User.temporary_expired(14)  # Custom days
+```
+
+### Cleanup Task
+
+Add to your scheduler (cron, Sidekiq, etc.):
+
+```ruby
+# Delete expired temporary users
+User.temporary_expired.destroy_all
+```
+
 ## Controller Customization
 
 Subclass controllers for custom behavior:
@@ -266,19 +338,19 @@ class UserMailer < ApplicationMailer
   def confirmation(user, token)
     @user = user
     @confirmation_url = edit_confirmation_url(token: token)
-    mail(to: user.email_address, subject: "Confirm your email")
+    mail(to: user.email, subject: "Confirm your email")
   end
 
   def magic_link(user, token)
     @user = user
     @magic_link_url = magic_link_login_url(token: token)
-    mail(to: user.email_address, subject: "Your sign-in link")
+    mail(to: user.email, subject: "Your sign-in link")
   end
 
   def password_reset(user, token)
     @user = user
     @reset_url = edit_password_url(token: token)
-    mail(to: user.email_address, subject: "Reset your password")
+    mail(to: user.email, subject: "Reset your password")
   end
 end
 ```

@@ -27,10 +27,12 @@ module RailsSimpleAuth
     private
 
     def registration_params
-      params.expect(user: %i[email_address password])
+      params.expect(user: %i[email password])
     end
 
     def after_successful_registration
+      destroy_temporary_user_session(@user)
+
       if RailsSimpleAuth.configuration.email_confirmation_enabled
         send_confirmation_email(@user)
         run_after_sign_up_callback(@user)

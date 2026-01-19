@@ -10,7 +10,7 @@ module RailsSimpleAuth
       rate_limit to: 5, within: 15.minutes, by: -> { client_ip }, only: :create,
                  with: -> { redirect_to new_session_path, alert: 'Too many login attempts. Please try again later.' }
 
-      rate_limit to: 3, within: 10.minutes, by: -> { params[:email_address].to_s.downcase }, only: :request_magic_link,
+      rate_limit to: 3, within: 10.minutes, by: -> { params[:email].to_s.downcase }, only: :request_magic_link,
                  with: lambda {
                    redirect_to new_session_path, alert: 'Too many magic link requests. Please try again later.'
                  }
@@ -26,20 +26,20 @@ module RailsSimpleAuth
     end
 
     def create
-      user = user_class.find_by(email: params[:email_address]) || user_class.new(password: SecureRandom.hex(32))
+      user = user_class.find_by(email: params[:email]) || user_class.new(password: SecureRandom.hex(32))
 
       if user.authenticate(params[:password]) && user.persisted?
         if confirmation_required_for?(user)
           @error_message = 'Please confirm your email before signing in.'
-          @previous_email = params[:email_address]
+          @previous_email = params[:email]
           render :new, status: :unprocessable_content
         else
           sign_in_and_redirect(user)
         end
       else
-        Rails.logger.warn("Failed login attempt for email: #{params[:email_address]} from IP: #{client_ip}")
+        Rails.logger.warn("Failed login attempt for email: #{params[:email]} from IP: #{client_ip}")
         @error_message = 'Invalid email or password'
-        @previous_email = params[:email_address]
+        @previous_email = params[:email]
         render :new, status: :unprocessable_content
       end
     end
@@ -56,7 +56,7 @@ module RailsSimpleAuth
     end
 
     def request_magic_link
-      user = user_class.find_by(email: params[:email_address])
+      user = user_class.find_by(email: params[:email])
 
       if user.respond_to?(:generate_magic_link_token)
         token = user.generate_magic_link_token
@@ -70,7 +70,13 @@ module RailsSimpleAuth
       user = user_class.find_signed(params[:token], purpose: :magic_link)
 
       if user
-        user.confirm! if user.respond_to?(:confirm!) && user.respond_to?(:unconfirmed?) && user.unconfirmed?
+        # Auto-confirm unconfirmed users via magic link (email ownership verified)
+        if user.respond_to?(:confirm!) && user.respond_to?(:unconfirmed?) && user.unconfirmed? && !user.confirm!
+          # Confirmation failed (e.g., email already taken during reconfirmation)
+          error_message = user.errors.full_messages.first || 'Could not confirm email.'
+          redirect_to new_session_path, alert: error_message
+          return
+        end
         sign_in_and_redirect(user)
       else
         redirect_to new_session_path, alert: 'Invalid or expired magic link.'
@@ -86,6 +92,7 @@ module RailsSimpleAuth
     end
 
     def sign_in_and_redirect(user)
+      destroy_temporary_user_session(user)
       create_session_for(user)
       run_after_sign_in_callback(user)
       redirect_to stored_location_or_default, notice: 'Signed in successfully.'

@@ -12,12 +12,18 @@ module RailsSimpleAuth
     end
 
     def show
-      user = user_class.find_signed(params[:token], purpose: :email_confirmation)
+      user = user_class.find_signed(params[:token], purpose: :confirm_email)
 
       if user
-        user.confirm! if user.respond_to?(:confirm!)
-        run_after_confirmation_callback(user)
-        redirect_to resolve_path(:after_confirmation_path), notice: 'Email confirmed! You can now sign in.'
+        confirmed = user.respond_to?(:confirm!) ? user.confirm! : true
+
+        if confirmed
+          run_after_confirmation_callback(user)
+          redirect_to resolve_path(:after_confirmation_path), notice: 'Email confirmed! You can now sign in.'
+        else
+          error_message = user.errors.full_messages.first || 'Could not confirm email.'
+          redirect_to new_confirmation_path, alert: error_message
+        end
       else
         redirect_to new_confirmation_path, alert: 'Invalid or expired confirmation link.'
       end
@@ -26,9 +32,9 @@ module RailsSimpleAuth
     def new; end
 
     def create
-      user = user_class.find_by(email: params[:email_address])
+      user = user_class.find_by(email: params[:email])
 
-      if user.respond_to?(:unconfirmed?) && user.unconfirmed?
+      if user.respond_to?(:unconfirmed_or_reconfirming?) && user.unconfirmed_or_reconfirming?
         token = user.generate_confirmation_token
         RailsSimpleAuth.configuration.mailer.confirmation(user, token).deliver_later
       end

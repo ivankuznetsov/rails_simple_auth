@@ -1,0 +1,21 @@
+Description:
+    Creates a migration to add temporary user support to your User model.
+    Temporary users allow guest/demo user flows where visitors can try
+    your app without signing up, then convert to permanent accounts.
+
+Example:
+    bin/rails generate rails_simple_auth:temporary_users
+
+    This will create:
+        db/migrate/YYYYMMDDHHMMSS_add_temporary_to_users.rb
+
+    After running the migration, include the concern in your User model:
+        include RailsSimpleAuth::Models::Concerns::TemporaryUser
+
+    And enable in your initializer:
+        config.temporary_users_enabled = true
+
+    The concern provides:
+        - temporary? / permanent? methods
+        - temporary / permanent / temporary_expired scopes
+        - convert_to_permanent!(email:, password:) for account conversion

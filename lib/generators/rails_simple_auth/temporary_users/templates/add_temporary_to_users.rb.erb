@@ -1,0 +1,8 @@
+# frozen_string_literal: true
+
+class AddTemporaryToUsers < ActiveRecord::Migration[<%= Rails::VERSION::MAJOR %>.<%= Rails::VERSION::MINOR %>]
+  def change
+    add_column :users, :temporary, :boolean, default: false, null: false
+    add_index :users, [:temporary, :created_at], name: "index_users_on_temporary_and_created_at"
+  end
+end

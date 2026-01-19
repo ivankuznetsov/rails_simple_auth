@@ -18,18 +18,29 @@ class ApplicationRecord < ActiveRecord::Base
   self.abstract_class = true
 end
 
+# Define ApplicationMailer before loading the gem (required by AuthMailer)
+class ApplicationMailer < ActionMailer::Base
+  # No layout for test simplicity
+  layout false
+
+  # Add the gem's view path for mailer templates
+  prepend_view_path File.expand_path('../app/views', __dir__)
+end
+
 # Create test schema
 ActiveRecord::Schema.define do
   create_table :users, force: true do |t|
-    t.string :email_address, null: false
+    t.string :email, null: false
     t.string :password_digest
     t.datetime :confirmed_at
+    t.string :unconfirmed_email
     t.string :oauth_provider
     t.string :oauth_uid
+    t.boolean :temporary, default: false, null: false
     t.timestamps
   end
 
-  add_index :users, :email_address, unique: true
+  add_index :users, :email, unique: true
 
   create_table :sessions, force: true do |t|
     t.references :user, null: false
@@ -62,11 +73,19 @@ class User < ApplicationRecord
   include RailsSimpleAuth::Models::Concerns::Authenticatable
   include RailsSimpleAuth::Models::Concerns::Confirmable
   include RailsSimpleAuth::Models::Concerns::MagicLinkable
+  include RailsSimpleAuth::Models::Concerns::TemporaryUser
+  include RailsSimpleAuth::Models::Concerns::OAuthConnectable
 
-  # Re-define sessions association with static class name for testing
-  has_many :sessions,
-           class_name: 'RailsSimpleAuth::Session',
-           dependent: :destroy
+  # For OAuth testing - store provider/uid
+  def assign_oauth_attributes(auth_hash)
+    self.oauth_provider = auth_hash['provider']
+    self.oauth_uid = auth_hash['uid']
+  end
+
+  # Find user by OAuth credentials
+  def self.find_by_oauth(provider, uid)
+    find_by(oauth_provider: provider, oauth_uid: uid)
+  end
 end
 
 # Monkey-patch Session for testing to use static class name
@@ -96,6 +115,10 @@ module Minitest
 
     def assert_not(object, message = nil)
       refute(object, message)
+    end
+
+    def assert_not_includes(collection, object, message = nil)
+      refute_includes(collection, object, message)
     end
 
     def setup
