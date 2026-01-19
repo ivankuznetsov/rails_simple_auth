@@ -220,6 +220,26 @@ class TemporaryUserTest < Minitest::Test
     assert_predicate temp_user.errors[:email], :any?
     assert_predicate temp_user.reload, :temporary?
   end
+
+  def test_convert_to_permanent_fails_when_password_is_nil
+    temp_user = User.create!(email: 'temp@example.com', password: 'password123', temporary: true)
+
+    result = temp_user.convert_to_permanent!(email: 'permanent@example.com', password: nil)
+
+    assert_not result
+    assert_predicate temp_user.errors[:password], :any?
+    assert_predicate temp_user.reload, :temporary?
+  end
+
+  def test_convert_to_permanent_fails_when_password_is_blank
+    temp_user = User.create!(email: 'temp@example.com', password: 'password123', temporary: true)
+
+    result = temp_user.convert_to_permanent!(email: 'permanent@example.com', password: '')
+
+    assert_not result
+    assert_predicate temp_user.errors[:password], :any?
+    assert_predicate temp_user.reload, :temporary?
+  end
 end
 
 class TemporaryUserConfigurationTest < Minitest::Test

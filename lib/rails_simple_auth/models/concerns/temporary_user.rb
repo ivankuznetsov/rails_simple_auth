@@ -28,6 +28,12 @@ module RailsSimpleAuth
         # Convert a temporary user to a permanent user with email and password
         # Returns self on success, false on failure (with errors populated)
         def convert_to_permanent!(email:, password:)
+          # Validate password presence upfront
+          if password.blank?
+            errors.add(:password, "can't be blank")
+            return false
+          end
+
           # Validate email uniqueness upfront (better UX than failing inside transaction)
           if self.class.where.not(id: id).exists?(email: email)
             errors.add(:email, 'has already been taken')
@@ -79,8 +85,7 @@ module RailsSimpleAuth
           def cleanup_expired_temporary!(days: nil, batch_size: 100)
             count = 0
             temporary_expired(days).find_each(batch_size: batch_size) do |user|
-              user.destroy
-              count += 1
+              count += 1 if user.destroy
             end
             Rails.logger.info("[RailsSimpleAuth] Cleaned up #{count} expired temporary users")
             count

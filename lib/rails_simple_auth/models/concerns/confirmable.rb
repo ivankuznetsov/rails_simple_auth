@@ -62,6 +62,10 @@ module RailsSimpleAuth
             # Already confirmed and not reconfirming
             true
           end
+        rescue ActiveRecord::RecordNotUnique
+          # Race condition: email was taken between check and update
+          errors.add(:email, 'is already taken by another user')
+          false
         end
 
         # Generate email confirmation token using Rails signed_id
