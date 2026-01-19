@@ -2,6 +2,8 @@
 
 Simple, secure authentication for Rails 8+ applications. Built on Rails primitives with no magic.
 
+**Coming from Devise?** Read our [detailed comparison](docs/devise-comparison.md).
+
 ## Features
 
 - [**Email/Password authentication**](#installation) - secure session-based auth
