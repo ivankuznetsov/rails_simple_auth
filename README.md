@@ -4,16 +4,16 @@ Simple, secure authentication for Rails 8+ applications. Built on Rails primitiv
 
 ## Features
 
-- **Email/Password authentication** with bcrypt
-- **Magic link** (passwordless) authentication
-- **Email confirmation** with signed tokens
-- **Password reset** with signed tokens
-- **OAuth support** (Google, GitHub, etc.)
-- **Temporary users** (guest mode) with conversion to permanent
-- **Rate limiting** built-in
-- **Session tracking** with IP and user agent
-- **Customizable styling** via CSS variables
-- **No dependencies** beyond Rails and bcrypt
+- [**Email/Password authentication**](#installation) - secure session-based auth
+- [**Magic link authentication**](#routes) - passwordless sign-in via email
+- [**Email confirmation**](#routes) - verify user email addresses
+- [**Password reset**](#routes) - secure password recovery flow
+- [**OAuth support**](#oauth-setup) - Google, GitHub, and more
+- [**Temporary users**](#temporary-users-guest-accounts) - guest accounts that convert to permanent
+- [**Rate limiting**](#security-features) - built-in protection on all endpoints
+- [**Session tracking**](#security-features) - IP and user agent logging
+- [**Customizable styling**](#styling) - CSS variables for easy theming
+- [**Custom mailers**](#mailer) - use your own branded email templates
 
 ## Installation
 
@@ -204,9 +204,20 @@ class User < ApplicationRecord
 end
 ```
 
-## Temporary Users (Guest Mode)
+## Temporary Users (Guest Accounts)
 
-Allow visitors to try your app without signing up, then convert to permanent accounts later.
+Temporary users allow visitors to try your app without creating an account. They get a real user record with full functionality, then can convert to a permanent account later by providing email and password.
+
+### Why Use Temporary Users?
+
+**Reduce friction**: Let users experience your app's value before asking them to sign up. This is especially useful for:
+
+- **E-commerce**: Users can add items to cart, save preferences, then checkout as guest or create account
+- **Productivity apps**: Users can create documents, try features, then save their work by signing up
+- **Games**: Users can start playing immediately, then create account to save progress
+- **Collaboration tools**: Users can join a shared workspace via link, then register to keep access
+
+**Preserve data**: Unlike anonymous sessions, temporary users have real database records. When they convert, all their data (orders, documents, settings) stays linked to their account.
 
 ### Setup
 
@@ -217,7 +228,7 @@ rails generate rails_simple_auth:temporary_users
 rails db:migrate
 ```
 
-2. Include the concern in your User model:
+2. Add the concern to your User model:
 
 ```ruby
 class User < ApplicationRecord
@@ -237,42 +248,110 @@ end
 
 ### Creating Temporary Users
 
+Create a temporary user when someone needs to use your app without signing up:
+
 ```ruby
-# Create a temporary user (no email/password required)
-temp_user = User.create!(
-  email: "temp_#{SecureRandom.hex(8)}@temp.local",
-  password: SecureRandom.hex(16),
-  temporary: true
-)
+# In your controller
+def try_without_account
+  user = User.create!(
+    email: "temp_#{SecureRandom.hex(8)}@temporary.local",
+    password: SecureRandom.hex(32),
+    temporary: true
+  )
+
+  # Sign them in
+  create_session_for(user)
+  redirect_to dashboard_path
+end
+```
+
+Or create via an invite link:
+
+```ruby
+def accept_invite
+  # Create temporary user to access shared content
+  user = User.create!(temporary: true, ...)
+  create_session_for(user)
+  redirect_to shared_workspace_path(params[:workspace_id])
+end
 ```
 
 ### Converting to Permanent Account
 
+When a temporary user is ready to create a real account:
+
 ```ruby
-# When user decides to sign up for real
-temp_user.convert_to_permanent!(
-  email: "real@example.com",
-  password: "secure_password"
-)
-# Sends confirmation email automatically if email confirmation is enabled
+# In your controller
+def convert_account
+  if current_user.convert_to_permanent!(
+    email: params[:email],
+    password: params[:password]
+  )
+    redirect_to dashboard_path, notice: "Account created! Please check your email to confirm."
+  else
+    # Validation failed (email taken, password blank, etc.)
+    render :convert_form, status: :unprocessable_entity
+  end
+end
 ```
 
-### Scopes
+The conversion:
+- Updates email and password
+- Sets `temporary: false`
+- Resets `confirmed_at` (requires email confirmation for new address)
+- Invalidates all existing sessions (security measure)
+- Sends confirmation email automatically
 
-```ruby
-User.temporary          # All temporary users
-User.permanent          # All permanent users
-User.temporary_expired  # Temporary users older than cleanup_days
-User.temporary_expired(14)  # Custom days
+### What Happens on Sign In?
+
+When a temporary user signs in with a different account (or signs up), the temporary user is automatically destroyed:
+
+```
+Temporary User (browsing) → Signs in with existing account → Temp user deleted
+Temporary User (browsing) → Creates new account → Temp user deleted
+Temporary User (browsing) → Converts their temp account → Keeps same user record
 ```
 
-### Cleanup Task
+This prevents orphaned temporary records and ensures clean data.
 
-Add to your scheduler (cron, Sidekiq, etc.):
+### Querying Users
 
 ```ruby
-# Delete expired temporary users
-User.temporary_expired.destroy_all
+User.temporary           # All temporary users
+User.permanent           # All permanent users
+User.temporary_expired   # Temporary users older than cleanup_days
+
+current_user.temporary?  # Is this a guest?
+current_user.permanent?  # Is this a real account?
+```
+
+### Cleanup
+
+Temporary users are automatically eligible for cleanup after `temporary_user_cleanup_days`. Run cleanup manually or via scheduled job:
+
+```ruby
+# In a rake task or background job
+User.cleanup_expired_temporary!
+
+# With custom retention period
+User.cleanup_expired_temporary!(days: 14)
+```
+
+Add to your scheduler (e.g., `config/recurring.yml` for Solid Queue):
+
+```yaml
+cleanup_temporary_users:
+  schedule: every day at 3am
+  class: CleanupTemporaryUsersJob
+```
+
+```ruby
+class CleanupTemporaryUsersJob < ApplicationJob
+  def perform
+    count = User.cleanup_expired_temporary!
+    Rails.logger.info "Cleaned up #{count} expired temporary users"
+  end
+end
 ```
 
 ## Controller Customization
