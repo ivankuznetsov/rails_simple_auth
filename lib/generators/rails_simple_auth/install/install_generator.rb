@@ -40,14 +40,13 @@ module RailsSimpleAuth
         say 'Next steps:'
         say '  1. Review and edit the migration: db/migrate/xxx_add_rails_simple_auth.rb'
         say '  2. Run: rails db:migrate'
-        say "  3. Add concerns to your #{options[:user_model]} model:"
+        say "  3. Add authentication to your #{options[:user_model]} model:"
         say ''
         say "     class #{options[:user_model]} < ApplicationRecord"
-        say '       include RailsSimpleAuth::Models::Concerns::Authenticatable'
-        say '       include RailsSimpleAuth::Models::Concerns::Confirmable      # optional'
-        say '       include RailsSimpleAuth::Models::Concerns::MagicLinkable    # optional'
-        say '       include RailsSimpleAuth::Models::Concerns::OAuthConnectable # optional'
+        say '       authenticates_with :confirmable, :magic_linkable'
         say '     end'
+        say ''
+        say '     Available modules: :confirmable, :magic_linkable, :oauth, :temporary'
         say ''
         say '  4. Add before_action to protect routes:'
         say ''
@@ -56,8 +55,9 @@ module RailsSimpleAuth
         say '     end'
         say ''
         say 'Optional generators:'
-        say '  rails generate rails_simple_auth:views  # Copy views for customization'
-        say '  rails generate rails_simple_auth:css    # Copy CSS for styling'
+        say '  rails generate rails_simple_auth:views           # Copy views for customization'
+        say '  rails generate rails_simple_auth:css             # Copy CSS for styling'
+        say '  rails generate rails_simple_auth:temporary_users # Add guest account support'
         say ''
       end
     end

@@ -206,7 +206,7 @@ end
 
 ```ruby
 class User < ApplicationRecord
-  include RailsSimpleAuth::Models::Concerns::OAuthConnectable
+  authenticates_with :oauth
 
   def assign_oauth_attributes(auth_hash)
     self.name = auth_hash.dig("info", "name")

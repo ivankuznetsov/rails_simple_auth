@@ -28,8 +28,8 @@ module RailsSimpleAuth
         say 'Next steps:', :yellow
         say '  1. Run: bin/rails db:migrate'
         say ''
-        say '  2. Include the concern in your User model:'
-        say '     include RailsSimpleAuth::Models::Concerns::TemporaryUser'
+        say '  2. Add :temporary to your User model:'
+        say '     authenticates_with :confirmable, :temporary'
         say ''
         say '  3. Enable in your initializer:'
         say '     config.temporary_users_enabled = true'

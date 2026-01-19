@@ -9,8 +9,8 @@ Example:
     This will create:
         db/migrate/YYYYMMDDHHMMSS_add_temporary_to_users.rb
 
-    After running the migration, include the concern in your User model:
-        include RailsSimpleAuth::Models::Concerns::TemporaryUser
+    After running the migration, add :temporary to your User model:
+        authenticates_with :confirmable, :temporary
 
     And enable in your initializer:
         config.temporary_users_enabled = true
