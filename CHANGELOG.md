@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.8] - 2026-01-19
+
+### Fixed
+
+- **OAuth buttons use button_to instead of link_to** - `link_to` with `method: :post` doesn't work in Rails 8 without rails-ujs. Changed OAuth buttons in sessions and registrations views to use `button_to` which properly creates POST forms.
+
 ## [1.0.7] - 2026-01-19
 
 ### Fixed

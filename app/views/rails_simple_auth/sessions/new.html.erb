@@ -39,9 +39,8 @@
       <div class="rsa-auth-form__oauth">
         <div class="rsa-auth-form__oauth-buttons">
           <% RailsSimpleAuth.configuration.oauth_providers.each do |provider| %>
-            <%= link_to "/auth/#{provider}",
+            <%= button_to "/auth/#{provider}",
                   class: "rsa-auth-form__oauth-button rsa-auth-form__oauth-button--#{provider}",
-                  method: :post,
                   data: { turbo: false } do %>
               <span class="rsa-auth-form__oauth-icon rsa-auth-form__oauth-icon--<%= provider %>"></span>
               Continue with <%= provider.to_s.titleize %>
