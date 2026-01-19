@@ -24,9 +24,12 @@ module RailsSimpleAuth
     end
 
     # Secure OmniAuth by default - only allow POST to initiate OAuth (prevents CSRF)
+    # Disable OmniAuth's authenticity token protection since POST-only already prevents CSRF
+    # and Rails handles CSRF protection at the application level
     initializer 'rails_simple_auth.omniauth', after: :load_config_initializers do
       if defined?(OmniAuth)
         OmniAuth.config.allowed_request_methods = %i[post]
+        OmniAuth.config.request_validation_phase = nil
       end
     end
   end
