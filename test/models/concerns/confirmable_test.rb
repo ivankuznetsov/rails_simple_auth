@@ -144,6 +144,15 @@ class ConfirmableTest < Minitest::Test
 
     assert_not result
     assert_predicate user.errors[:email], :any?
+  end
+
+  def test_confirm_preserves_original_email_when_reconfirmation_fails
+    User.create!(email: 'taken@example.com', password: 'password123')
+    user = User.create!(email: 'test@example.com', password: 'password123', confirmed_at: Time.current)
+    user.update_column(:unconfirmed_email, 'taken@example.com') # rubocop:disable Rails/SkipsModelValidations
+
+    user.confirm!
+
     assert_equal 'test@example.com', user.reload.email
     assert_equal 'taken@example.com', user.unconfirmed_email
   end

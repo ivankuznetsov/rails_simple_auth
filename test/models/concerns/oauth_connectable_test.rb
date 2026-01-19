@@ -16,9 +16,14 @@ class OAuthConnectableTest < Minitest::Test
 
     assert_not_nil user
     assert_equal 'oauth@example.com', user.email
+    assert_predicate user, :persisted?
+  end
+
+  def test_from_oauth_assigns_oauth_attributes
+    user = User.from_oauth(oauth_hash)
+
     assert_equal 'google', user.oauth_provider
     assert_equal '12345', user.oauth_uid
-    assert_predicate user, :persisted?
   end
 
   def test_from_oauth_auto_confirms_new_user
