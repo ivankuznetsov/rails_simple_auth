@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.4] - 2025-01-19
+
+### Added
+
+- **`authenticates_with` DSL** - Cleaner model setup inspired by Devise syntax
+  ```ruby
+  # Before
+  include RailsSimpleAuth::Models::Concerns::Authenticatable
+  include RailsSimpleAuth::Models::Concerns::Confirmable
+
+  # After
+  authenticates_with :confirmable, :magic_linkable, :oauth, :temporary
+  ```
+- **Devise comparison article** - Comprehensive comparison at `docs/devise-comparison.md`
+- **Admin Users documentation** - Guide for implementing admin functionality
+- **Rate Limiting documentation** - Default limits and customization guide
+- **Session Management documentation** - Expiration, querying, and cleanup
+
 ## [1.0.3] - 2025-01-19
 
 ### Added
