@@ -55,7 +55,11 @@ module RailsSimpleAuth
             raise ActiveRecord::Rollback unless update(attrs)
           end
 
-          # Check if transaction was rolled back
+          # Reload to get actual database state after transaction
+          # (in-memory attributes may be stale if transaction was rolled back)
+          reload
+
+          # Check if conversion actually succeeded
           return false if errors.any? || temporary?
 
           invalidate_all_sessions!

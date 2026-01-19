@@ -171,6 +171,55 @@ class TemporaryUserTest < Minitest::Test
     assert_equal 1, count
     assert_raises(ActiveRecord::RecordNotFound) { old_temp.reload }
   end
+
+  def test_temporary_expired_raises_when_cleanup_days_not_configured
+    # The scope uses the config value directly, so we need to test with
+    # an explicitly passed nil/zero value
+    assert_raises(RailsSimpleAuth::ConfigurationError) do
+      User.temporary_expired(0).to_a
+    end
+
+    assert_raises(RailsSimpleAuth::ConfigurationError) do
+      User.temporary_expired(-1).to_a
+    end
+  end
+
+  def test_convert_to_permanent_resets_confirmed_at
+    user = User.create!(
+      email: 'temp@example.com',
+      password: 'password123',
+      temporary: true,
+      confirmed_at: Time.current
+    )
+
+    assert_predicate user, :confirmed?
+
+    user.convert_to_permanent!(email: 'permanent@example.com', password: 'newpassword123')
+
+    assert_nil user.reload.confirmed_at
+    assert_predicate user, :unconfirmed?
+  end
+
+  def test_convert_to_permanent_allows_same_email_as_current_temporary_user
+    temp_user = User.create!(email: 'temp@example.com', password: 'password123', temporary: true)
+
+    # Converting with the same email should work (the user is just making their temp email permanent)
+    result = temp_user.convert_to_permanent!(email: 'temp@example.com', password: 'newpassword123')
+
+    assert_equal temp_user, result
+    assert_not temp_user.reload.temporary?
+  end
+
+  def test_convert_to_permanent_fails_when_email_taken_by_another_temporary_user
+    User.create!(email: 'taken@example.com', password: 'password123', temporary: true)
+    temp_user = User.create!(email: 'other@example.com', password: 'password123', temporary: true)
+
+    result = temp_user.convert_to_permanent!(email: 'taken@example.com', password: 'newpassword123')
+
+    assert_not result
+    assert_predicate temp_user.errors[:email], :any?
+    assert_predicate temp_user.reload, :temporary?
+  end
 end
 
 class TemporaryUserConfigurationTest < Minitest::Test

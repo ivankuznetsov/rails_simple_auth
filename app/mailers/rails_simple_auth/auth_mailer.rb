@@ -4,6 +4,9 @@ module RailsSimpleAuth
   class AuthMailer < ApplicationMailer
     default from: -> { RailsSimpleAuth.configuration.mailer_sender }
 
+    # Use the mailers folder for templates instead of auth_mailer
+    self.mailer_name = 'rails_simple_auth/mailers'
+
     def confirmation(user, token)
       @user = user
       @token = token

@@ -70,7 +70,13 @@ module RailsSimpleAuth
       user = user_class.find_signed(params[:token], purpose: :magic_link)
 
       if user
-        user.confirm! if user.respond_to?(:confirm!) && user.respond_to?(:unconfirmed?) && user.unconfirmed?
+        # Auto-confirm unconfirmed users via magic link (email ownership verified)
+        if user.respond_to?(:confirm!) && user.respond_to?(:unconfirmed?) && user.unconfirmed? && !user.confirm!
+          # Confirmation failed (e.g., email already taken during reconfirmation)
+          error_message = user.errors.full_messages.first || 'Could not confirm email.'
+          redirect_to new_session_path, alert: error_message
+          return
+        end
         sign_in_and_redirect(user)
       else
         redirect_to new_session_path, alert: 'Invalid or expired magic link.'
