@@ -44,6 +44,10 @@ module RailsSimpleAuth
           current_user.present?
         end
 
+        def permanent_user_signed_in?
+          user_signed_in? && (!current_user.respond_to?(:permanent?) || current_user.permanent?)
+        end
+
         def store_location_for_redirect
           return unless request.get?
 
@@ -55,6 +59,33 @@ module RailsSimpleAuth
           return if path.start_with?('//')
 
           session[:return_to] = path
+        end
+
+        def store_referrer_for_redirect
+          # Don't overwrite existing stored location (e.g., from require_authentication)
+          return if session[:return_to].present?
+
+          referrer = request.referer
+          return if referrer.blank?
+
+          # SECURITY: Only store referrer if it's from the same origin
+          begin
+            referrer_uri = URI.parse(referrer)
+            request_uri = URI.parse(request.url)
+
+            return unless referrer_uri.host == request_uri.host
+
+            path = referrer_uri.path
+            path += "?#{referrer_uri.query}" if referrer_uri.query.present?
+
+            # SECURITY: Validate path to prevent open redirect attacks
+            return unless path.start_with?('/')
+            return if path.start_with?('//')
+
+            session[:return_to] = path
+          rescue URI::InvalidURIError
+            # Invalid referrer, ignore
+          end
         end
 
         def stored_location_or_default

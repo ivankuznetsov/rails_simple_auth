@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.7] - 2026-01-19
+
+### Fixed
+
+- **Temporary users can now access sign-in page** - Previously, temporary users clicking "Sign in" were redirected away because `user_signed_in?` returned true. Now checks `permanent_user_signed_in?` instead, allowing temporary users to sign in with a real account.
+
+### Added
+
+- **Referrer-based redirect after sign-in** - When users voluntarily click "Sign in" (not forced by `require_authentication`), their referring page is stored so they're redirected back after signing in. Security: only stores referrer from same origin.
+- `permanent_user_signed_in?` helper method - Returns true only if user is signed in AND permanent (or doesn't respond to `permanent?`)
+
 ## [1.0.6] - 2025-01-19
 
 ### Added

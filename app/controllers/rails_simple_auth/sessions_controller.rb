@@ -22,7 +22,9 @@ module RailsSimpleAuth
     end
 
     def new
-      redirect_to resolve_path(:after_sign_in_path) if user_signed_in?
+      return redirect_to resolve_path(:after_sign_in_path) if permanent_user_signed_in?
+
+      store_referrer_for_redirect
     end
 
     def create
@@ -52,7 +54,9 @@ module RailsSimpleAuth
     end
 
     def magic_link_form
-      redirect_to resolve_path(:after_sign_in_path) if user_signed_in?
+      return redirect_to resolve_path(:after_sign_in_path) if permanent_user_signed_in?
+
+      store_referrer_for_redirect
     end
 
     def request_magic_link
