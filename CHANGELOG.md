@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.13] - 2026-01-19
+
+### Fixed
+
+- **OAuth controller uses display names** - Success and failure messages now use `oauth_provider_display_name` instead of raw provider name
+
 ## [1.0.12] - 2026-01-19
 
 ### Added
