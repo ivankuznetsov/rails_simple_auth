@@ -28,6 +28,17 @@ module RailsSimpleAuth
     end
 
     def failure
+      error = request.env['omniauth.error']
+      error_type = request.env['omniauth.error.type']
+      strategy = request.env['omniauth.error.strategy']&.name
+
+      Rails.logger.error(
+        "[RailsSimpleAuth] OAuth failure: " \
+        "type=#{error_type.inspect}, " \
+        "strategy=#{strategy.inspect}, " \
+        "error=#{error&.message.inspect}"
+      )
+
       redirect_to new_session_path, alert: 'Authentication failed. Please try again.'
     end
   end
