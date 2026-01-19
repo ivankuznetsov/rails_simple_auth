@@ -1,16 +1,8 @@
 # RailsSimpleAuth vs Devise: Choosing the Right Authentication for Rails 8+
 
-Authentication is the foundation of most web applications, yet choosing the right approach remains one of the most debated decisions in the Rails community. For over a decade, Devise has been the de facto standard. But with Rails 8's emphasis on simplicity and "no build" philosophy, a new generation of authentication libraries is emerging.
+RailsSimpleAuth is an opinionated authentication backend built on top of Rails native auth generators, initially to power my personal projects. I decided to share it because I think the authentication generators in Rails are great, but I still have to reuse code from project to project, so I created a gem that follows my approach to auth.
 
-This article compares **RailsSimpleAuth**—a lightweight, Rails 8-native authentication gem—with **Devise**, the battle-tested industry standard.
-
-## The Authentication Landscape in 2025
-
-Rails 8 shipped with built-in authentication generators, signaling a shift toward simpler, dependency-free solutions. This aligns with DHH's vision of Rails as a "one-person framework" where developers understand every line of their application.
-
-RailsSimpleAuth builds on this philosophy: simple, secure authentication using Rails primitives with no magic. Devise, meanwhile, continues to offer comprehensive features through its modular architecture built on Warden.
-
-Both are valid choices—the right one depends on your needs.
+But you all want to know how it compares to Devise, right? So I asked Claude to prepare this comparison, because I personally never used Devise and was thinking it's too complex for my cases.
 
 ## Quick Comparison
 
