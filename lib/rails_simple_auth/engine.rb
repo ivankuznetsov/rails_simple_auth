@@ -15,6 +15,10 @@ module RailsSimpleAuth
         include RailsSimpleAuth::Controllers::Concerns::Authentication
         include RailsSimpleAuth::Controllers::Concerns::SessionManagement
       end
+
+      ActiveSupport.on_load(:action_view) do
+        include RailsSimpleAuth::OauthHelper
+      end
     end
 
     initializer 'rails_simple_auth.model' do
