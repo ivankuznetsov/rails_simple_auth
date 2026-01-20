@@ -58,6 +58,7 @@ Metrics/ClassLength:
 Metrics/CyclomaticComplexity:
   Exclude:
     - 'lib/rails_simple_auth/models/concerns/**/*'
+    - 'lib/rails_simple_auth/controllers/concerns/**/*'
 
 Metrics/PerceivedComplexity:
   Exclude:
@@ -82,3 +83,17 @@ Rails/ReflectionClassName:
 
 Style/SafeNavigationChainLength:
   Enabled: false
+
+# Generator test files use Capybara naming convention
+Naming/PredicatePrefix:
+  Exclude:
+    - 'test/generator_test_files/**/*'
+
+# Generator test files are templates, not part of gem test suite
+Minitest/MultipleAssertions:
+  Max: 5
+
+# Allow generated test files to have longer files
+Metrics/ModuleLength:
+  Exclude:
+    - 'test/generator_test_files/**/*'

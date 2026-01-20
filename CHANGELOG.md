@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Generator E2E test infrastructure** - CI pipeline now validates that generators produce working views
+  - `bin/test_generator` script creates fresh Rails app, runs generators, and executes E2E tests
+  - Reusable Page Object test templates in `test/generator_test_files/`
+  - GitHub Actions `generator-test` job runs after unit tests pass
+
+### Fixed
+
+- **Session model autoloading** - Moved `RailsSimpleAuth::Session` from `lib/` to `app/models/` for proper Rails engine autoloading
+
 ## [1.0.14] - 2026-01-20
 
 ### Fixed
