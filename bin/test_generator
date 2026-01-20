@@ -58,9 +58,14 @@ class User < ApplicationRecord
 end
 EOF
 
-# Run migrations
+# Run CSS generator
+echo "Running CSS generator..."
+bin/rails generate rails_simple_auth:css
+
+# Run migrations (for both dev and test environments)
 echo "Running migrations..."
 bin/rails db:migrate
+RAILS_ENV=test bin/rails db:migrate
 
 # Create dashboard controller
 echo "Creating DashboardController..."
