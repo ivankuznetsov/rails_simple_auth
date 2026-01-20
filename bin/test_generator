@@ -46,10 +46,6 @@ export GEM_PATH="$GEM_DIR"
 echo "Installing dependencies..."
 bundle install
 
-# Run the install generator
-echo "Running rails_simple_auth:install generator..."
-bin/rails generate rails_simple_auth:install
-
 # Create User model with authenticates_with
 echo "Creating User model..."
 cat > app/models/user.rb << 'EOF'
@@ -57,6 +53,34 @@ class User < ApplicationRecord
   authenticates_with :confirmable, :magic_linkable
 end
 EOF
+
+# Create users migration BEFORE install generator (users table must exist before sessions)
+echo "Creating users migration..."
+mkdir -p db/migrate
+TIMESTAMP=$(date +%Y%m%d%H%M%S)
+cat > "db/migrate/${TIMESTAMP}_create_users.rb" << 'EOF'
+class CreateUsers < ActiveRecord::Migration[8.0]
+  def change
+    create_table :users do |t|
+      t.string :email, null: false
+      t.string :password_digest
+      t.datetime :confirmed_at
+      t.string :unconfirmed_email
+
+      t.timestamps
+    end
+
+    add_index :users, :email, unique: true
+  end
+end
+EOF
+
+# Small delay to ensure sessions migration gets a later timestamp
+sleep 1
+
+# Run the install generator
+echo "Running rails_simple_auth:install generator..."
+bin/rails generate rails_simple_auth:install
 
 # Run CSS generator
 echo "Running CSS generator..."
