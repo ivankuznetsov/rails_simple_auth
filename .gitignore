@@ -12,3 +12,7 @@
 Gemfile.lock
 .playwright-mcp/
 log/
+
+# Local development files
+plans/
+todos/

@@ -63,9 +63,17 @@ end
 Rails.application.initialize!
 
 # Configure signed IDs for ActiveRecord (required for Rails 8+)
+# Note: This method is deprecated in Rails 8.2, but the replacement API
+# (ActiveRecord.message_verifiers) requires full Rails app initialization
 ActiveRecord::Base.signed_id_verifier_secret = Rails.application.secret_key_base
 
 require 'rails_simple_auth'
+
+# Configure RailsSimpleAuth to use User class before anything uses Session
+RailsSimpleAuth.configure do |config|
+  config.user_class_name = 'User'
+end
+
 require 'minitest/autorun'
 
 # Define User model for testing
@@ -85,24 +93,6 @@ class User < ApplicationRecord
   # Find user by OAuth credentials
   def self.find_by_oauth(provider, uid)
     find_by(oauth_provider: provider, oauth_uid: uid)
-  end
-end
-
-# Monkey-patch Session for testing to use static class name
-module RailsSimpleAuth
-  class Session < ApplicationRecord
-    self.table_name = 'sessions'
-    belongs_to :user, class_name: 'User'
-
-    scope :recent, -> { order(created_at: :desc) }
-    scope :active, -> { where(created_at: RailsSimpleAuth.configuration.session_expiry.ago..) }
-    scope :expired, -> { where(created_at: ...RailsSimpleAuth.configuration.session_expiry.ago) }
-
-    def self.cleanup_expired!
-      count = expired.delete_all
-      Rails.logger.info("[RailsSimpleAuth] Cleaned up #{count} expired sessions")
-      count
-    end
   end
 end
 

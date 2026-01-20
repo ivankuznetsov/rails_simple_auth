@@ -1,0 +1,259 @@
+#!/usr/bin/env bash
+set -e
+
+# Test rails_simple_auth generator by creating a fresh Rails app and running tests
+# This script validates that the gem's generators and default views work correctly
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+GEM_DIR="$(dirname "$SCRIPT_DIR")"
+TEST_APP_DIR="${TEST_APP_DIR:-/tmp/rails_simple_auth_test_app}"
+HEADLESS="${HEADLESS:-true}"
+
+echo "=== rails_simple_auth Generator Test ==="
+echo "Gem directory: $GEM_DIR"
+echo "Test app directory: $TEST_APP_DIR"
+echo ""
+
+# Clean up previous test app
+if [ -d "$TEST_APP_DIR" ]; then
+  echo "Removing existing test app..."
+  rm -rf "$TEST_APP_DIR"
+fi
+
+# Create new Rails app
+echo "Creating new Rails app..."
+rails new "$TEST_APP_DIR" --skip-test --skip-git --skip-docker --skip-action-mailbox --skip-action-text --skip-active-storage
+
+cd "$TEST_APP_DIR"
+
+# Add gems to Gemfile
+echo "Adding gems to Gemfile..."
+cat >> Gemfile << 'EOF'
+
+# Authentication gem (local development)
+gem "rails_simple_auth", path: ENV.fetch("RSA_GEM_PATH", "../rails_simple_auth")
+
+group :test do
+  gem "capybara"
+  gem "capybara-playwright-driver"
+end
+EOF
+
+# Install dependencies
+# Export RSA_GEM_PATH for the entire script (used by Gemfile)
+# NOTE: Using RSA_GEM_PATH instead of GEM_PATH to avoid conflict with Ruby's standard env var
+export RSA_GEM_PATH="$GEM_DIR"
+
+echo "Installing dependencies..."
+bundle install
+
+# Create User model with authenticates_with
+echo "Creating User model..."
+cat > app/models/user.rb << 'EOF'
+class User < ApplicationRecord
+  authenticates_with :confirmable, :magic_linkable
+end
+EOF
+
+# Create users migration BEFORE install generator (users table must exist before sessions)
+echo "Creating users migration..."
+mkdir -p db/migrate
+TIMESTAMP=$(date +%Y%m%d%H%M%S)
+cat > "db/migrate/${TIMESTAMP}_create_users.rb" << 'EOF'
+class CreateUsers < ActiveRecord::Migration[8.0]
+  def change
+    create_table :users do |t|
+      t.string :email, null: false
+      t.string :password_digest
+      t.datetime :confirmed_at
+      t.string :unconfirmed_email
+
+      t.timestamps
+    end
+
+    add_index :users, :email, unique: true
+  end
+end
+EOF
+
+# Small delay to ensure sessions migration gets a later timestamp
+sleep 1
+
+# Run the install generator
+echo "Running rails_simple_auth:install generator..."
+bin/rails generate rails_simple_auth:install
+
+# Run CSS generator
+echo "Running CSS generator..."
+bin/rails generate rails_simple_auth:css
+
+# Run migrations (for both dev and test environments)
+echo "Running migrations..."
+bin/rails db:migrate
+RAILS_ENV=test bin/rails db:migrate
+
+# Create dashboard controller
+echo "Creating DashboardController..."
+mkdir -p app/controllers
+cat > app/controllers/dashboard_controller.rb << 'EOF'
+class DashboardController < ApplicationController
+  before_action :require_authentication
+
+  def show
+  end
+end
+EOF
+
+# Create dashboard view
+echo "Creating dashboard view..."
+mkdir -p app/views/dashboard
+cat > app/views/dashboard/show.html.erb << 'EOF'
+<div class="rsa-container">
+  <div class="rsa-auth-form">
+    <h1 class="rsa-auth-form__title">Dashboard</h1>
+    <p class="rsa-auth-form__description">
+      Welcome, <strong><%= current_user.email %></strong>
+    </p>
+    <p class="rsa-auth-form__description">
+      You are signed in.
+    </p>
+    <%= button_to "Sign Out", session_path, method: :delete, class: "rsa-auth-form__submit rsa-auth-form__submit--danger" %>
+  </div>
+</div>
+EOF
+
+# Create home controller and view
+echo "Creating HomeController..."
+cat > app/controllers/home_controller.rb << 'EOF'
+class HomeController < ApplicationController
+  def index
+    redirect_to dashboard_path if user_signed_in?
+  end
+end
+EOF
+
+mkdir -p app/views/home
+cat > app/views/home/index.html.erb << 'EOF'
+<div class="rsa-container">
+  <div class="rsa-auth-form">
+    <h1 class="rsa-auth-form__title">rails_simple_auth Demo</h1>
+    <p class="rsa-auth-form__description">
+      A minimal authentication gem for Rails
+    </p>
+    <div class="rsa-auth-form__actions">
+      <%= link_to "Sign In", new_session_path, class: "rsa-auth-form__submit" %>
+      <%= link_to "Sign Up", sign_up_path, class: "rsa-auth-form__submit rsa-auth-form__submit--secondary" %>
+    </div>
+  </div>
+</div>
+EOF
+
+# Add routes
+echo "Adding routes..."
+cat > config/routes.rb << 'EOF'
+Rails.application.routes.draw do
+  rails_simple_auth_routes
+
+  get "dashboard", to: "dashboard#show"
+  root "home#index"
+end
+EOF
+
+# Update application layout for flash messages
+echo "Updating application layout..."
+cat > app/views/layouts/application.html.erb << 'EOF'
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>rails_simple_auth Test App</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= stylesheet_link_tag "rails_simple_auth", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+  <body class="rsa-body">
+    <div class="rsa-container">
+      <% flash.each do |type, message| %>
+        <div class="rsa-flash rsa-flash--<%= type %>">
+          <%= message %>
+        </div>
+      <% end %>
+      <%= yield %>
+    </div>
+  </body>
+</html>
+EOF
+
+# Copy test files from gem
+echo "Copying test infrastructure..."
+mkdir -p test/support/pages test/system test/models test/controllers
+
+# Copy base page
+cat > test/support/pages/base_page.rb << 'EOF'
+# frozen_string_literal: true
+
+module Pages
+  class BasePage
+    include Capybara::DSL
+    include Capybara::Minitest::Assertions
+
+    attr_reader :test_context
+
+    def initialize(test_context)
+      @test_context = test_context
+    end
+  end
+end
+EOF
+
+# Copy page objects from the gem's test directory
+cp "$GEM_DIR/test/generator_test_files/pages/"*.rb test/support/pages/ 2>/dev/null || true
+cp "$GEM_DIR/test/generator_test_files/system/"*.rb test/system/ 2>/dev/null || true
+cp "$GEM_DIR/test/generator_test_files/models/"*.rb test/models/ 2>/dev/null || true
+cp "$GEM_DIR/test/generator_test_files/controllers/"*.rb test/controllers/ 2>/dev/null || true
+
+# Create test helper
+cat > test/test_helper.rb << 'EOF'
+ENV["RAILS_ENV"] ||= "test"
+require_relative "../config/environment"
+require "rails/test_help"
+require "capybara/rails"
+require "capybara/minitest"
+
+Capybara.register_driver(:playwright) do |app|
+  Capybara::Playwright::Driver.new(app,
+    browser_type: :chromium,
+    headless: ENV["HEADLESS"] != "false")
+end
+
+Capybara.default_driver = :playwright
+Capybara.javascript_driver = :playwright
+
+Dir[Rails.root.join("test/support/**/*.rb")].each { |f| require f }
+
+class ActiveSupport::TestCase
+  parallelize(workers: :number_of_processors)
+end
+
+class ActionDispatch::IntegrationTest
+  include Capybara::DSL
+  include Capybara::Minitest::Assertions
+
+  def teardown
+    Capybara.reset_sessions!
+  end
+end
+EOF
+
+# Install Playwright browser
+echo "Installing Playwright browser..."
+npx playwright install chromium 2>/dev/null || echo "Playwright browser installation skipped"
+
+# Run tests
+echo ""
+echo "=== Running Tests ==="
+HEADLESS="$HEADLESS" bin/rails test:all
+
+echo ""
+echo "=== All tests passed! ==="

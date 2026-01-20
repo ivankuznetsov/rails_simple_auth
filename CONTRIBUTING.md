@@ -21,10 +21,32 @@ Thank you for your interest in contributing!
 2. Fork the repository
 3. Create a feature branch (`git checkout -b feature/my-feature`)
 4. Write tests for your changes
-5. Ensure all tests pass (`bundle exec rake test`)
-6. Run linter (`bundle exec rubocop`)
-7. Update CHANGELOG.md under `[Unreleased]`
-8. Submit a pull request
+5. **Run local CI before submitting:**
+   ```bash
+   bin/ci
+   ```
+   This runs RuboCop and all unit tests.
+6. Update CHANGELOG.md under `[Unreleased]`
+7. Submit a pull request
+
+### Local Development
+
+```bash
+# Install dependencies
+bundle install
+
+# Run local CI (linter + tests)
+bin/ci
+
+# Run only tests
+bundle exec rake test
+
+# Run only linter
+bundle exec rubocop
+
+# Run generator E2E tests (optional, requires Rails + Playwright)
+bin/test_generator
+```
 
 ### Code Style
 

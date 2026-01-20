@@ -39,3 +39,26 @@ jobs:
           bundler-cache: true
       - name: Run RuboCop
         run: bundle exec rubocop
+
+  generator-test:
+    runs-on: ubuntu-latest
+    needs: [test]
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.4'
+          bundler-cache: true
+
+      - name: Install Rails
+        run: gem install rails
+
+      - name: Install Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Run generator test
+        env:
+          HEADLESS: 'true'
+        run: bin/test_generator
