@@ -4,7 +4,7 @@ module RailsSimpleAuth
   class Session < ::ApplicationRecord
     self.table_name = 'sessions'
 
-    # Note: class_name is evaluated at class load time. Users customizing
+    # NOTE: class_name is evaluated at class load time. Users customizing
     # user_class_name must configure it before this model loads (e.g., in
     # config/application.rb or an early-loading initializer).
     belongs_to :user, class_name: RailsSimpleAuth.configuration.user_class_name
