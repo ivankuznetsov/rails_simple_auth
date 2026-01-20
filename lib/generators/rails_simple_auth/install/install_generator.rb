@@ -23,7 +23,7 @@ module RailsSimpleAuth
         template 'initializer.rb', 'config/initializers/rails_simple_auth.rb'
       end
 
-      def create_migration
+      def copy_migration_file
         return if options[:skip_migration]
 
         migration_template 'migration.rb', 'db/migrate/add_rails_simple_auth.rb'

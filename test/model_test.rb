@@ -5,52 +5,54 @@ require 'test_helper'
 class ModelTest < Minitest::Test
   def setup
     # Ensure the Model module is included in ActiveRecord::Base for dynamic class creation
-    ActiveRecord::Base.include(RailsSimpleAuth::Model) unless ActiveRecord::Base.respond_to?(:authenticates_with)
+    return if ActiveRecord::Base.respond_to?(:authenticates_with)
+
+    ActiveSupport.on_load(:active_record) { include RailsSimpleAuth::Model }
   end
 
   def test_authenticates_with_includes_base_module
-    klass = Class.new(ActiveRecord::Base) do
+    klass = Class.new(ApplicationRecord) do
       self.table_name = 'users'
       authenticates_with
     end
 
-    assert klass.include?(RailsSimpleAuth::Models::Concerns::Authenticatable)
+    assert_includes klass, RailsSimpleAuth::Models::Concerns::Authenticatable
   end
 
   def test_authenticates_with_includes_confirmable
-    klass = Class.new(ActiveRecord::Base) do
+    klass = Class.new(ApplicationRecord) do
       self.table_name = 'users'
       authenticates_with :confirmable
     end
 
-    assert klass.include?(RailsSimpleAuth::Models::Concerns::Authenticatable)
-    assert klass.include?(RailsSimpleAuth::Models::Concerns::Confirmable)
+    assert_includes klass, RailsSimpleAuth::Models::Concerns::Authenticatable
+    assert_includes klass, RailsSimpleAuth::Models::Concerns::Confirmable
   end
 
   def test_authenticates_with_includes_multiple_modules
-    klass = Class.new(ActiveRecord::Base) do
+    klass = Class.new(ApplicationRecord) do
       self.table_name = 'users'
       authenticates_with :confirmable, :magic_linkable, :temporary
     end
 
-    assert klass.include?(RailsSimpleAuth::Models::Concerns::Authenticatable)
-    assert klass.include?(RailsSimpleAuth::Models::Concerns::Confirmable)
-    assert klass.include?(RailsSimpleAuth::Models::Concerns::MagicLinkable)
-    assert klass.include?(RailsSimpleAuth::Models::Concerns::TemporaryUser)
+    assert_includes klass, RailsSimpleAuth::Models::Concerns::Authenticatable
+    assert_includes klass, RailsSimpleAuth::Models::Concerns::Confirmable
+    assert_includes klass, RailsSimpleAuth::Models::Concerns::MagicLinkable
+    assert_includes klass, RailsSimpleAuth::Models::Concerns::TemporaryUser
   end
 
   def test_authenticates_with_includes_oauth
-    klass = Class.new(ActiveRecord::Base) do
+    klass = Class.new(ApplicationRecord) do
       self.table_name = 'users'
       authenticates_with :oauth
     end
 
-    assert klass.include?(RailsSimpleAuth::Models::Concerns::OAuthConnectable)
+    assert_includes klass, RailsSimpleAuth::Models::Concerns::OAuthConnectable
   end
 
   def test_authenticates_with_raises_on_unknown_module
     assert_raises(ArgumentError) do
-      Class.new(ActiveRecord::Base) do
+      Class.new(ApplicationRecord) do
         self.table_name = 'users'
         authenticates_with :unknown_module
       end
@@ -59,7 +61,7 @@ class ModelTest < Minitest::Test
 
   def test_authenticates_with_error_message_lists_available_modules
     error = assert_raises(ArgumentError) do
-      Class.new(ActiveRecord::Base) do
+      Class.new(ApplicationRecord) do
         self.table_name = 'users'
         authenticates_with :invalid
       end

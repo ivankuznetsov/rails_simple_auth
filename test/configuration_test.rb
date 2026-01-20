@@ -47,26 +47,26 @@ class ConfigurationTest < Minitest::Test
   end
 
   def test_enable_oauth_with_hash
-    @config.enable_oauth(google_oauth2: "Google", github: "GitHub")
+    @config.enable_oauth(google_oauth2: 'Google', github: 'GitHub')
 
     assert_includes @config.oauth_providers, :google_oauth2
     assert_includes @config.oauth_providers, :github
-    assert_equal "Google", @config.oauth_provider_names[:google_oauth2]
-    assert_equal "GitHub", @config.oauth_provider_names[:github]
+    assert_equal 'Google', @config.oauth_provider_names[:google_oauth2]
+    assert_equal 'GitHub', @config.oauth_provider_names[:github]
   end
 
   def test_oauth_provider_display_name_with_custom_name
-    @config.enable_oauth(google_oauth2: "Google", github: "GitHub")
+    @config.enable_oauth(google_oauth2: 'Google', github: 'GitHub')
 
-    assert_equal "Google", @config.oauth_provider_display_name(:google_oauth2)
-    assert_equal "GitHub", @config.oauth_provider_display_name(:github)
+    assert_equal 'Google', @config.oauth_provider_display_name(:google_oauth2)
+    assert_equal 'GitHub', @config.oauth_provider_display_name(:github)
   end
 
   def test_oauth_provider_display_name_fallback
     @config.enable_oauth(:google_oauth2, :github)
 
-    assert_equal "Google", @config.oauth_provider_display_name(:google_oauth2)
-    assert_equal "Github", @config.oauth_provider_display_name(:github)
+    assert_equal 'Google', @config.oauth_provider_display_name(:google_oauth2)
+    assert_equal 'Github', @config.oauth_provider_display_name(:github)
   end
 
   def test_rate_limits_defaults

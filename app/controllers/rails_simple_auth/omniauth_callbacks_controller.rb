@@ -35,7 +35,7 @@ module RailsSimpleAuth
       strategy = request.env['omniauth.error.strategy']&.name
 
       Rails.logger.error(
-        "[RailsSimpleAuth] OAuth failure: " \
+        '[RailsSimpleAuth] OAuth failure: ' \
         "type=#{error_type.inspect}, " \
         "strategy=#{strategy.inspect}, " \
         "error=#{error&.message.inspect}"

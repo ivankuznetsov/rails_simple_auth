@@ -115,7 +115,7 @@ module RailsSimpleAuth
     # Falls back to titleized provider name if no custom name is configured
     def oauth_provider_display_name(provider)
       provider_sym = provider.to_sym
-      oauth_provider_names[provider_sym] || provider.to_s.gsub(/_oauth2$/, "").titleize
+      oauth_provider_names[provider_sym] || provider.to_s.gsub(/_oauth2$/, '').titleize
     end
 
     def rate_limit_for(action)
