@@ -125,12 +125,12 @@ Or edit `rails_simple_auth.css` directly for complete control.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `--rsa-color-primary` | `#3b82f6` | Primary button/link color |
-| `--rsa-color-primary-hover` | `#2563eb` | Primary hover state |
+| `--rsa-color-primary` | `#4f46e5` | Primary button/link color |
+| `--rsa-color-primary-hover` | `#4338ca` | Primary hover state |
 | `--rsa-color-background-form` | `#ffffff` | Form container background |
-| `--rsa-color-text` | `#374151` | Main text color |
-| `--rsa-color-text-muted` | `#6b7280` | Secondary text color |
-| `--rsa-color-border` | `#e5e7eb` | Border color |
+| `--rsa-color-text` | `#475569` | Main text color |
+| `--rsa-color-text-muted` | `#64748b` | Secondary text color |
+| `--rsa-color-border` | `#e2e8f0` | Border color |
 | `--rsa-color-danger` | `#dc2626` | Error message color |
 
 ## View Customization
