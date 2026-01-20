@@ -31,7 +31,7 @@ echo "Adding gems to Gemfile..."
 cat >> Gemfile << 'EOF'
 
 # Authentication gem (local development)
-gem "rails_simple_auth", path: ENV.fetch("GEM_PATH", "../rails_simple_auth")
+gem "rails_simple_auth", path: ENV.fetch("RSA_GEM_PATH", "../rails_simple_auth")
 
 group :test do
   gem "capybara"
@@ -40,8 +40,9 @@ end
 EOF
 
 # Install dependencies
-# Export GEM_PATH for the entire script (used by Gemfile)
-export GEM_PATH="$GEM_DIR"
+# Export RSA_GEM_PATH for the entire script (used by Gemfile)
+# NOTE: Using RSA_GEM_PATH instead of GEM_PATH to avoid conflict with Ruby's standard env var
+export RSA_GEM_PATH="$GEM_DIR"
 
 echo "Installing dependencies..."
 bundle install
