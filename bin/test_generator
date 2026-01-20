@@ -40,8 +40,11 @@ end
 EOF
 
 # Install dependencies
+# Export GEM_PATH for the entire script (used by Gemfile)
+export GEM_PATH="$GEM_DIR"
+
 echo "Installing dependencies..."
-GEM_PATH="$GEM_DIR" bundle install
+bundle install
 
 # Run the install generator
 echo "Running rails_simple_auth:install generator..."
