@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.14] - 2026-01-20
+
+### Fixed
+
+- **Rails 8.1 generator compatibility** - Renamed `create_migration` method to `copy_migration_file` in install generator to avoid conflict with Rails 8.1's internal migration generator methods
+
 ## [1.0.13] - 2026-01-19
 
 ### Fixed
