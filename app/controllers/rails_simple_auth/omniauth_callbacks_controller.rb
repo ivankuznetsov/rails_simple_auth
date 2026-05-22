@@ -19,11 +19,7 @@ module RailsSimpleAuth
       display_name = RailsSimpleAuth.configuration.oauth_provider_display_name(provider)
 
       if user&.persisted?
-        destroy_temporary_user_session(user)
-        create_session_for(user)
-        run_after_sign_in_callback(user)
-        redirect_to resolve_path(:after_sign_in_path),
-                    notice: "Signed in successfully with #{display_name}."
+        sign_in_user_and_redirect(user, notice: "Signed in successfully with #{display_name}.")
       else
         redirect_to new_session_path, alert: "Could not authenticate with #{display_name}."
       end

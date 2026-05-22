@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-05-23
+
+### Changed
+
+- **OAuth provider sign-in now honors `session[:return_to]`.** `OmniauthCallbacksController#create` previously hardcoded `after_sign_in_path`, so a user mid-redirect (e.g., a host app that called `store_location_for_redirect` before bouncing to `/sign_in`) landed on the default page after the Google/GitHub round-trip instead of resuming. It now goes through `sign_in_user_and_redirect`, which consumes `session[:return_to]` and falls back to `after_sign_in_path`. **Action:** host apps relying on a hard reset to the configured path post-OAuth should review their flows; the configured path remains the default when nothing was stored.
+- **Confirmation-disabled sign-up now honors `session[:return_to]`.** `RegistrationsController#after_successful_registration`'s no-confirmation branch previously hardcoded `after_sign_up_path`. It now redirects to `stored_location_or_default(:after_sign_up_path)` — same precedence rule, separate config key. The `after_sign_up_callback` execution path is unchanged.
+- **`stored_location_or_default` now accepts an optional fallback config key** (default `:after_sign_in_path`), so callers can pass `:after_sign_up_path` (or any other configured path) without duplicating the lookup logic.
+- **`stored_location_or_default` validates the stored value at read time** as defense-in-depth: a poisoned `session[:return_to]` (non-string, doesn't start with `/`, or starts with `//`) is rejected and the fallback is used instead. The write-side validation in `store_location_for_redirect` remains the primary defense; this read-side check protects host apps that bypass the helper.
+- **Extracted `sign_in_user_and_redirect(user, notice:)` to `SessionManagement` concern.** `SessionsController#sign_in_and_redirect` and `OmniauthCallbacksController#create` now share one definition of the sign-in-and-redirect sequence (`destroy_temporary_user_session` → `create_session_for` → `run_after_sign_in_callback` → `redirect_to stored_location_or_default`). `SessionsController#sign_in_and_redirect`'s external behavior is preserved.
+
 ## [1.1.0] - 2026-01-20
 
 ### Added

@@ -88,8 +88,26 @@ module RailsSimpleAuth
           end
         end
 
-        def stored_location_or_default
-          session.delete(:return_to) || resolve_path(:after_sign_in_path)
+        # Returns the stored post-auth return path (consuming it from the session) or,
+        # if none was stored or the stored value fails defense-in-depth validation,
+        # the resolved fallback path for the given config key (e.g., :after_sign_in_path,
+        # :after_sign_up_path).
+        #
+        # SECURITY: store_location_for_redirect validates paths at write time, but
+        # nothing prevents host-app code from writing to session[:return_to] directly.
+        # We re-check here so a poisoned value (open-redirect, javascript:, malformed
+        # string) falls back instead of raising UnsafeRedirectError or worse.
+        #
+        # NOTE: mutates the session — calling twice returns the fallback the second time.
+        def stored_location_or_default(fallback_path_config = :after_sign_in_path)
+          stored = session.delete(:return_to)
+          return resolve_path(fallback_path_config) unless safe_stored_location?(stored)
+
+          stored
+        end
+
+        def safe_stored_location?(path)
+          path.is_a?(String) && path.start_with?('/') && !path.start_with?('//')
         end
 
         def redirect_to_sign_in

@@ -40,7 +40,7 @@ module RailsSimpleAuth
       else
         create_session_for(@user)
         run_after_sign_up_callback(@user)
-        redirect_to resolve_path(:after_sign_up_path), notice: 'Account created successfully!'
+        redirect_to stored_location_or_default(:after_sign_up_path), notice: 'Account created successfully!'
       end
     end
 

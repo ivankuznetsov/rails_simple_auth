@@ -8,6 +8,19 @@ module RailsSimpleAuth
 
         private
 
+        # Standard sign-in sequence: clean up the temporary user, create the real
+        # session, fire after_sign_in callbacks, then redirect.
+        #
+        # NOTE: order matters — destroy_temporary_user_session must run before
+        # create_session_for, otherwise the new session cookie is wiped when the
+        # temp user is destroyed.
+        def sign_in_user_and_redirect(user, notice: 'Signed in successfully.')
+          destroy_temporary_user_session(user)
+          create_session_for(user)
+          run_after_sign_in_callback(user)
+          redirect_to stored_location_or_default, notice: notice
+        end
+
         # Create a new session for the user and set the cookie
         def create_session_for(user)
           session_record = user.sessions.create!(

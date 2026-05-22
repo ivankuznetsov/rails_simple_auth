@@ -163,6 +163,52 @@ class AuthenticationConcernTest < Minitest::Test
     assert_equal '/dashboard', result
   end
 
+  def test_stored_location_or_default_uses_custom_fallback_config_key
+    RailsSimpleAuth.configuration.after_sign_up_path = '/welcome'
+
+    result = @controller.stored_location_or_default(:after_sign_up_path)
+
+    assert_equal '/welcome', result
+  end
+
+  def test_stored_location_or_default_prefers_stored_over_custom_fallback
+    RailsSimpleAuth.configuration.after_sign_up_path = '/welcome'
+    @controller.session[:return_to] = '/checkout/step-2'
+
+    result = @controller.stored_location_or_default(:after_sign_up_path)
+
+    assert_equal '/checkout/step-2', result
+    assert_nil @controller.session[:return_to], 'return_to must be consumed (deleted) on read'
+  end
+
+  def test_stored_location_or_default_rejects_protocol_relative_value_and_falls_back
+    RailsSimpleAuth.configuration.after_sign_in_path = '/dashboard'
+    @controller.session[:return_to] = '//evil.com/path'
+
+    result = @controller.stored_location_or_default
+
+    assert_equal '/dashboard', result
+    assert_nil @controller.session[:return_to], 'poisoned value must still be consumed (deleted)'
+  end
+
+  def test_stored_location_or_default_rejects_absolute_url_and_falls_back
+    RailsSimpleAuth.configuration.after_sign_in_path = '/dashboard'
+    @controller.session[:return_to] = 'https://evil.com/path'
+
+    result = @controller.stored_location_or_default
+
+    assert_equal '/dashboard', result
+  end
+
+  def test_stored_location_or_default_rejects_non_string_value_and_falls_back
+    RailsSimpleAuth.configuration.after_sign_in_path = '/dashboard'
+    @controller.session[:return_to] = { evil: true }
+
+    result = @controller.stored_location_or_default
+
+    assert_equal '/dashboard', result
+  end
+
   def test_client_ip_prefers_cloudflare_header
     @controller.request.headers['CF-Connecting-IP'] = '1.2.3.4'
     @controller.request.headers['X-Forwarded-For'] = '5.6.7.8, 9.10.11.12'

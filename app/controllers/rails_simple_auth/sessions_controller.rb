@@ -96,10 +96,7 @@ module RailsSimpleAuth
     end
 
     def sign_in_and_redirect(user)
-      destroy_temporary_user_session(user)
-      create_session_for(user)
-      run_after_sign_in_callback(user)
-      redirect_to stored_location_or_default, notice: 'Signed in successfully.'
+      sign_in_user_and_redirect(user)
     end
   end
 end
