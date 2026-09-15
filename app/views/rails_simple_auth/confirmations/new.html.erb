@@ -10,6 +10,7 @@
       <div class="rsa-auth-form__group">
         <%= form.label :email, "Email", class: "rsa-auth-form__label" %>
         <%= form.email_field :email,
+              value: session[:confirmation_email],
               class: "rsa-auth-form__input",
               required: true,
               autofocus: true %>

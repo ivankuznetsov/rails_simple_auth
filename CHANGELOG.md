@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Redirect password-authenticated users with unconfirmed emails to the confirmation form and prefill their email. Keep them signed out until confirmation; opening the form does not automatically resend email.
+
 ## [1.2.1] - 2026-09-15
 
 ### Fixed

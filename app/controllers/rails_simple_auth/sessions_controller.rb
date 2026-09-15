@@ -32,9 +32,8 @@ module RailsSimpleAuth
 
       if user.authenticate(params[:password]) && user.persisted?
         if confirmation_required_for?(user)
-          @error_message = 'Please confirm your email before signing in.'
-          @previous_email = params[:email]
-          render :new, status: :unprocessable_content
+          session[:confirmation_email] = user.email
+          redirect_to new_confirmation_path
         else
           sign_in_and_redirect(user)
         end
