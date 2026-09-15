@@ -32,6 +32,8 @@ cat >> Gemfile << 'EOF'
 
 # Authentication gem (local development)
 gem "rails_simple_auth", path: ENV.fetch("RSA_GEM_PATH", "../rails_simple_auth")
+# Match the gem test bundle: Rails 8.1 is incompatible with JSON 3's parse API.
+gem "json", "< 3"
 
 group :test do
   gem "capybara"

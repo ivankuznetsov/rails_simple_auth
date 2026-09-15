@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-09-15
+
+### Fixed
+
+- OAuth linking reloads the account under a row lock so concurrent confirmation or pending email changes are preserved; if the matched email changes before linking, sign-in is rejected.
+- Confirm existing accounts when linking by email through a trusted OAuth provider, before calling the host application's `assign_oauth_attributes` hook. Preserve existing confirmation timestamps and pending email changes. Accounts found by provider and UID remain unchanged.
+- Return `nil` when saving an existing OAuth account link fails, preventing authentication with unsaved changes.
+
 ## [1.2.0] - 2026-05-23
 
 ### Changed

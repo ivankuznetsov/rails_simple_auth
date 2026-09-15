@@ -65,15 +65,18 @@ class OAuthConnectableTest < Minitest::Test
     assert_equal existing.id, user.id
     assert_equal 'google', user.oauth_provider
     assert_equal '12345', user.oauth_uid
+    assert_predicate existing.reload, :confirmed?
   end
 
   def test_from_oauth_rejects_existing_email_when_linking_disabled
     RailsSimpleAuth.configuration.oauth_link_existing_accounts = false
-    User.create!(email: 'existing@example.com', password: 'password123')
+    existing = User.create!(email: 'existing@example.com', password: 'password123')
 
     user = User.from_oauth(oauth_hash(email: 'existing@example.com'))
 
     assert_nil user
+    assert_nil existing.reload.confirmed_at
+    assert_nil existing.oauth_provider
   end
 
   def test_from_oauth_returns_existing_oauth_user_even_with_different_provider_on_same_email
@@ -101,6 +104,117 @@ class OAuthConnectableTest < Minitest::Test
     assert_equal existing.id, user.id
     # Email should NOT change when found by oauth credentials
     assert_equal 'original@example.com', user.email
+    assert_nil existing.reload.confirmed_at
+  end
+
+  def test_linking_preserves_existing_confirmation_timestamp
+    confirmed_at = 2.days.ago.change(usec: 0)
+    existing = User.create!(email: 'oauth@example.com', password: 'password123', confirmed_at: confirmed_at)
+
+    User.from_oauth(oauth_hash)
+
+    assert_equal confirmed_at, existing.reload.confirmed_at
+    assert_equal 'google', existing.oauth_provider
+  end
+
+  def test_linking_does_not_confirm_pending_email_change
+    existing = User.create!(email: 'oauth@example.com', password: 'password123',
+                            unconfirmed_email: 'pending@example.com')
+
+    User.from_oauth(oauth_hash)
+
+    assert_nil existing.reload.confirmed_at
+    assert_equal 'oauth@example.com', existing.email
+    assert_equal 'pending@example.com', existing.unconfirmed_email
+    assert_equal 'google', existing.oauth_provider
+  end
+
+  def test_linking_confirms_before_calling_host_hook
+    existing = User.create!(email: 'oauth@example.com', password: 'password123')
+    confirmation_seen = nil
+    user_class = Class.new(User) do
+      define_method(:assign_oauth_attributes) do |auth_hash|
+        confirmation_seen = confirmed_at
+        super(auth_hash)
+      end
+    end
+
+    user = user_class.from_oauth(oauth_hash)
+
+    assert_not_nil confirmation_seen
+    assert_equal confirmation_seen, user.confirmed_at
+    assert_predicate existing.reload, :confirmed?
+  end
+
+  def test_linking_preserves_email_change_started_after_lookup
+    existing = User.create!(email: 'oauth@example.com', password: 'password123')
+    user_class = user_class_with_concurrent_update(unconfirmed_email: 'pending@example.com')
+
+    user = user_class.from_oauth(oauth_hash)
+
+    assert_equal existing.id, user.id
+    assert_nil existing.reload.confirmed_at
+    assert_equal 'pending@example.com', existing.unconfirmed_email
+    assert_equal %w[google 12345], [existing.oauth_provider, existing.oauth_uid]
+  end
+
+  def test_linking_preserves_confirmation_completed_after_lookup
+    existing = User.create!(email: 'oauth@example.com', password: 'password123')
+    confirmed_at = 1.minute.ago.change(usec: 0)
+    user_class = user_class_with_concurrent_update(confirmed_at: confirmed_at)
+
+    user = user_class.from_oauth(oauth_hash)
+
+    assert_equal existing.id, user.id
+    assert_equal confirmed_at, existing.reload.confirmed_at
+    assert_equal %w[google 12345], [existing.oauth_provider, existing.oauth_uid]
+  end
+
+  def test_linking_rejects_email_changed_after_lookup
+    existing = User.create!(email: 'oauth@example.com', password: 'password123')
+    user_class = user_class_with_concurrent_update(email: 'changed@example.com')
+
+    assert_nil user_class.from_oauth(oauth_hash)
+    assert_nil existing.reload.confirmed_at
+    assert_nil existing.oauth_provider
+  end
+
+  def test_linking_returns_nil_when_changes_cannot_be_saved
+    existing = User.create!(email: 'oauth@example.com', password: 'password123')
+    user_class = Class.new(User) do
+      validate { errors.add(:base, 'OAuth linking rejected') }
+    end
+
+    assert_nil user_class.from_oauth(oauth_hash)
+    assert_nil existing.reload.confirmed_at
+    assert_nil existing.oauth_provider
+    assert_nil existing.oauth_uid
+  end
+
+  def test_linking_supports_confirmation_storage_without_confirmable_concern
+    user_class = Class.new(ApplicationRecord) do
+      self.table_name = 'users'
+      include RailsSimpleAuth::Models::Concerns::OAuthConnectable
+    end
+    existing = user_class.create!(email: 'oauth@example.com')
+
+    user = user_class.from_oauth(oauth_hash)
+
+    assert_equal existing.id, user.id
+    assert_not_nil existing.reload.confirmed_at
+  end
+
+  def test_linking_supports_models_without_confirmation_storage
+    user_class = Class.new(ApplicationRecord) do
+      self.table_name = 'users'
+      self.ignored_columns += ['confirmed_at']
+      include RailsSimpleAuth::Models::Concerns::OAuthConnectable
+    end
+    existing = user_class.create!(email: 'oauth@example.com')
+
+    user = user_class.from_oauth(oauth_hash)
+
+    assert_equal existing.id, user.id
   end
 
   def test_assign_oauth_attributes_is_called_on_new_user
@@ -122,6 +236,18 @@ class OAuthConnectableTest < Minitest::Test
 
     assert_equal 'github', existing.oauth_provider
     assert_equal 'abc123', existing.oauth_uid
+  end
+
+  private
+
+  def user_class_with_concurrent_update(attributes)
+    Class.new(User) do
+      define_singleton_method(:find_by_email) do |email|
+        user = super(email)
+        User.find(user.id).update!(attributes)
+        user
+      end
+    end
   end
 end
 

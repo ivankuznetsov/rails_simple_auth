@@ -217,6 +217,12 @@ class User < ApplicationRecord
 end
 ```
 
+Email-based account linking is enabled by default (`config.oauth_link_existing_accounts = true`). Only enable it for providers you trust to supply verified email addresses; the gem does not inspect provider-specific verification claims. Set it to `false` to reject linking by email.
+
+New OAuth accounts and existing accounts linked by email are automatically confirmed when they have a `confirmed_at` column. Existing confirmation timestamps and pending email changes are preserved. Confirmation is assigned before `assign_oauth_attributes`, so your hook can use it to update application-specific state. The hook and confirmation changes are saved together; a failed save returns `nil`.
+
+Accounts found by provider and UID return unchanged, including their email and confirmation state. Applications with historical unconfirmed OAuth accounts should handle their backfill separately.
+
 ## Temporary Users (Guest Accounts)
 
 Temporary users allow visitors to try your app without creating an account. They get a real user record with full functionality, then can convert to a permanent account later by providing email and password.

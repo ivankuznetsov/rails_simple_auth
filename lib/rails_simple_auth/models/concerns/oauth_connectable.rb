@@ -41,16 +41,38 @@ module RailsSimpleAuth
             existing_user = find_by_email(email)
             if existing_user
               # Configurable: allow linking OAuth to existing accounts
-              # Default is true - most OAuth providers (Google, GitHub) verify emails
+              # Only enable for providers trusted to supply verified email addresses.
               if RailsSimpleAuth.configuration.oauth_link_existing_accounts
-                Rails.logger.info(
-                  "[RailsSimpleAuth] OAuth linked to existing account: #{email}. " \
-                  "Provider: #{provider}."
-                )
-                # Call hook to store OAuth credentials on existing user
-                existing_user.assign_oauth_attributes(auth_hash) if existing_user.respond_to?(:assign_oauth_attributes)
-                existing_user.save if existing_user.changed?
-                return existing_user
+                matched_email = existing_user.email
+                return existing_user.with_lock do
+                  # Reload under the lock before checking confirmation state.
+                  next nil if existing_user.email != matched_email
+
+                  # Confirm the current email only; OAuth does not verify a pending replacement.
+                  pending_email = existing_user.respond_to?(:unconfirmed_email) &&
+                                  existing_user.unconfirmed_email.present?
+                  if existing_user.respond_to?(:confirmed_at=) && existing_user.confirmed_at.nil? && !pending_email
+                    existing_user.confirmed_at = Time.current
+                  end
+
+                  # Call hook to store OAuth credentials on existing user
+                  if existing_user.respond_to?(:assign_oauth_attributes)
+                    existing_user.assign_oauth_attributes(auth_hash)
+                  end
+                  if existing_user.changed? && !existing_user.save
+                    Rails.logger.error(
+                      "[RailsSimpleAuth] OAuth account linking failed for email: #{email}, " \
+                      "provider: #{provider}, errors: #{existing_user.errors.full_messages.join(', ')}"
+                    )
+                    next nil
+                  end
+
+                  Rails.logger.info(
+                    "[RailsSimpleAuth] OAuth linked to existing account: #{email}. " \
+                    "Provider: #{provider}."
+                  )
+                  existing_user
+                end
               else
                 Rails.logger.warn(
                   "[RailsSimpleAuth] OAuth login rejected for existing email: #{email}. " \
